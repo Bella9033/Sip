@@ -55,24 +55,29 @@ void SipRegister::startRegService()
     // 用 shared_ptr 管理对象，并用 weak_ptr 安全绑定回调，避免悬垂指针和内存泄漏。
     std::weak_ptr<SipRegister> self_weak = shared_from_this(); // 获取当前对象的弱引用
     if (reg_timer_) 
-    {
+    {  
         // 设置定时器到时回调（Lambda捕获this，调用成员函数）
-        reg_timer_->setCallback([self_weak]() { 
+        reg_timer_->addTask([self_weak]() { 
             // 尝试获取当前对象的强引用
             // 如果对象仍然存在，则调用 registerProc
-            if (auto self = self_weak.lock()) {
-                LOG(INFO) << "[registerServiceStart] Timer triggered, calling registerProc()";
-                self->registerProc();
-            } else {
-                LOG(ERROR) << "SipRegister instance no longer exists.";
+            if (self_weak.lock()) 
+            { 
+                LOG(INFO) << "Register timer triggered.";
+                self_weak.lock()->registerProc();
+            } else 
+            {
+                LOG(ERROR) << "Failed to lock weak pointer, object may be destroyed.";
             }
         });
-        reg_timer_->startTaskTimer();
-        LOG(INFO) << "Register timer started.";
-    }
-    else 
-    {
-        LOG(ERROR) << "Failed to create TaskTimer.";
+        // 修复：确保只初始化一次
+        std::lock_guard<std::mutex> lock(init_mutex_);
+        LOG(INFO) << "Lock acquired for initialization.";
+        if (!initialized_) 
+        {
+            reg_timer_->start(); // 使用统一的start接口名称
+            initialized_ = true;
+            LOG(INFO) << "Register timer initialized.";
+        }
     }
 }
 

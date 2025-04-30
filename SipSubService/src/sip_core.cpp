@@ -14,10 +14,14 @@ pjsip_module SipCore::recv_mod = {
     &SipCore::onRxRequestRaw,  // 使用原始指针版本
     nullptr, nullptr, nullptr, nullptr
 };
+
 void SipCore::pollingEventLoop(SipTypes::EndpointPtr endpt) 
 {
     LOG(INFO) << "pollingEventLoop called";
+    
+    // 修复：确保线程已注册到PJSIP
     PjSipUtils::ThreadRegistrar thread_registrar;
+    
     if (!endpt) 
     {
         LOG(ERROR) << "pollingEventLoop received nullptr endpoint!";
@@ -28,7 +32,7 @@ void SipCore::pollingEventLoop(SipTypes::EndpointPtr endpt)
     {
         pj_time_val timeout = {0, 500};
         pj_status_t status = pjsip_endpt_handle_events(endpt.get(), &timeout);
-         // 增加对超时状态的处理，防止事件循环因常规的超时而退出
+        // 修复：正确处理超时状态，PJ_ETIMEDOUT是正常的超时返回
         if (status != PJ_SUCCESS && status != PJ_ETIMEDOUT)
         {
             LOG(ERROR) << "pollingEventLoop failed, code: " << status;
@@ -73,25 +77,27 @@ pj_bool_t SipCore::onRxRequest(SipTypes::RxDataPtr rdata)
 
 SipCore::SipCore()
 {
-    // 使用PjSipUtils工厂方法创建缓存池
     caching_pool_ = PjSipUtils::createCachingPool(SIP_STACK_SIZE);
     if (!caching_pool_) 
     {
         LOG(ERROR) << "Failed to create caching pool";
+        throw std::runtime_error("Failed to create caching pool");
     }
     endpt_ = nullptr;
 }
-
 
 SipCore::~SipCore() 
 {
     LOG(INFO) << "Releasing SipCore...";
     stop_pool_ = true;
-    std::this_thread::sleep_for(std::chrono::milliseconds(600));
+    
+    // 修复：增加足够的等待时间，确保pollingEventLoop安全退出
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    
     // 直接使用 PjSipUtils 的清理函数
-    // 由于成员变量是智能指针类型，编译器会自动选择智能指针版本的重载
     PjSipUtils::cleanupCore(caching_pool_, endpt_);
 }
+
 
 pj_status_t SipCore::initSip(int sip_port) 
 {  
@@ -131,7 +137,7 @@ pj_status_t SipCore::initSip(int sip_port)
         return status;
     }
     
-    // 添加默认池名称
+    // 修复：添加默认池名称
     pool_ = PjSipUtils::createEndptPool(endpt_, "sipcore-pool", SIP_ALLOC_POOL_1M, SIP_ALLOC_POOL_1M);
     if (!pool_)
     {
@@ -145,12 +151,12 @@ pj_status_t SipCore::initSip(int sip_port)
         return PJ_ENOMEM;
     }
 
-    // 线程创建部分：
+    // 修复：安全创建线程
     auto self = shared_from_this();
     auto endpt_copy = endpt_;
     
     try {
-        // 使用更长的超时时间，避免线程分离问题
+        // 修复：使用适当超时时间创建线程
         auto thread_future = EVThread::createThread(
             [self, endpt_copy]() {
                 try {

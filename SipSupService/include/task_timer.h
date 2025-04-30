@@ -1,37 +1,37 @@
 // task_timer.h
 
 #pragma once
+#include "common.h"
+#include "pjsip_utils.h"
+#include "ev_thread.h"
 
 #include <atomic>
 #include <chrono>
-#include <condition_variable>
 #include <functional>
+#include <future>
 #include <mutex>
 #include <thread>
-#include <vector>
+#include <memory>
 
-#include "common.h"
-
-class TaskTimer {
+ // 允许使用 weak_from_this()
+class TaskTimer : public std::enable_shared_from_this<TaskTimer>
+{
 public:
     using Task = std::function<void()>;
-    
+
     TaskTimer();
     ~TaskTimer();
-    
+
     void start();
     void stop();
     void addTask(const Task& task);
     void setInterval(unsigned int ms);
-    
-    // 修复：老接口重命名为更清晰的新接口
-    void startTaskTimer() { start(); }
-    
+
 private:
     void timerLoop();
-    
+
     std::thread timer_thread_;
-    std::vector<Task> tasks_;
+    //std::vector<Task> tasks_;
     bool running_;
     unsigned int interval_ms_;
     

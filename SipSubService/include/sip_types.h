@@ -61,5 +61,5 @@ namespace SipTypes {
     inline PoolPtr makePool(pj_pool_t* p) {
         return p ? PoolPtr(p, Deleters::deletePool) : nullptr;
     }
-    
+
 }

@@ -1,168 +1,113 @@
-// task_timer.cpp - 修改版
+// task_timer.cpp
 #include "task_timer.h"
 
-// 修改: 添加超时参数到构造函数
-TaskTimer::TaskTimer(int interval_seconds, std::chrono::milliseconds timeout)
-    : interval_seconds_(interval_seconds)
-    , thread_timeout_(timeout) {}
+#include "task_timer.h"
+#include "pjsip_utils.h"
+
+std::atomic<bool> TaskTimer::stop_flag_{false};
+
+TaskTimer::TaskTimer()
+    : running_(false),
+      interval_ms_(3000) // 默认3秒
+{
+}
 
 TaskTimer::~TaskTimer()
 {
+    LOG(INFO) << "Destroying TaskTimer...";
     stop();
 }
 
-// 创建一个定时器，定期执行某些任务（比如注册更新、状态检查等）
-void TaskTimer::startTaskTimer()
+void TaskTimer::start()
 {
     LOG(INFO) << "Creating timer thread...";
+    if (running_)  return; // 已经在运行
     
-    // 修改: 确保只启动一次
-    {
-        std::lock_guard<std::mutex> lock(cb_mutex_);
-        if (is_running_) {
-            LOG(WARNING) << "Timer already running, not starting again";
-            return;
-        }
-    }
+    // 修复：确保在启动线程前重置stop_flag_
+    stop_flag_ = false;
     
-    // weak_from_this() 从当前对象创建一个弱引用，
-    // 弱引用不会增加引用计数，防止循环引用导致内存泄漏
-    auto self_weak = weak_from_this();
+    // 使用智能指针管理线程对象
+    timer_thread_ = std::thread(&TaskTimer::timerLoop, this);
+    running_ = true;
+    
+    // 修复：添加日志并返回前确认线程已启动
+    LOG(INFO) << "Timer started successfully";
+}
 
-    try {
-        auto worker = [this, self_weak]() 
+void TaskTimer::timerLoop()
+{
+    LOG(INFO) << "Timer thread started, id=" << std::this_thread::get_id();
+    
+    // 修复：确保线程一开始就注册PJSIP
+    PjSipUtils::ThreadRegistrar thread_registrar;
+    
+    while (!stop_flag_)
+    {
+        // 修复：添加互斥锁保护任务列表访问
         {
-            // 确保线程注册
-            PjSipUtils::ThreadRegistrar registrar;
-            
-            // 修改: 增加线程安全检查
-            LOG(INFO) << "Timer thread started, id=" << std::this_thread::get_id();
-            
-            // self_weak.lock()：尝试获取弱引用指向的对象
-            if (auto self = self_weak.lock()) 
+            std::lock_guard<std::mutex> lock(task_mutex_);
+            LOG(INFO) << "Lock acquired for task execution.";
+            for (const auto& task : tasks_)
             {
-                // 调用定时器的主循环函数
-                self->timerLoop();
+                if (task) task();
             }
-            else {
-                LOG(WARNING) << "Timer object no longer exists, exiting thread";
-            }
-            
-            LOG(INFO) << "Timer thread exiting...";
-            // 如果主对象析构，则不会再执行timerLoop
-        };
-        
-        // 修改: 使用成员变量中的超时配置
-        thread_future_ = EVThread::createThread(
-            std::move(worker),
-            std::tuple<>(),
-            nullptr,
-            ThreadPriority::NORMAL,
-            thread_timeout_
-        );
-        
-        if(!thread_future_.valid())
-        {
-            LOG(ERROR) << "Failed to create timer thread!";
-            return;
         }
         
-        // 标记定时器正在运行
-        is_running_ = true;
-        stop_flag_ = false;
-        LOG(INFO) << "Timer started successfully";
-    } catch (const std::exception& e) {
-        LOG(ERROR) << "Failed to start timer: " << e.what();
-        is_running_ = false;
-        stop_flag_ = true;
-        throw;
+        // 修复：使用条件变量而不是sleep，以便更快响应停止请求
+        std::unique_lock<std::mutex> lock(cv_mutex_);
+        LOG(INFO) << "Waiting for next interval...";
+        // 使用 .load() 读取原子变量的值
+        cv_.wait_for(lock, std::chrono::milliseconds(interval_ms_),
+             [this]() { return stop_flag_.load(); });
+        LOG(INFO) << "Interval elapsed, resuming task execution...";
     }
 }
 
 void TaskTimer::stop()
 {
-    // 修改: 先检查是否在运行中
-    if (!is_running_) { 
-        LOG(INFO) << "Timer not running, nothing to stop";
-        return; 
-    }
-    
-    LOG(INFO) << "Stopping timer...";
-    std::lock_guard<std::mutex> lock(cb_mutex_);
-  
-    try {
-        // 设置停止标志
-        stop_flag_ = true;
-        
-        // 修改: 只在future有效时才等待
-        if (thread_future_.valid()) 
-        {
-            auto status = thread_future_.wait_for(std::chrono::seconds(5));
-            if (status == std::future_status::timeout) 
-            {
-                LOG(WARNING) << "Timer thread force stop after timeout";
-            }
-            else {
-                LOG(INFO) << "Timer thread stopped gracefully";
-            }
-        }
-        
-        // 不管成功与否，都设置为停止状态
-        is_running_ = false;
-    } catch (const std::exception& e) {
-        LOG(ERROR) << "Error stopping timer: " << e.what();
-        // 确保即使出现异常也能将状态重置
-        is_running_ = false;
-    }
-    
-    LOG(INFO) << "TaskTimer stopped.";
-}
-
-void TaskTimer::setCallback(TimerCallback cb)
-{
-    std::lock_guard<std::mutex> lock(cb_mutex_);
-    callback_ = std::move(cb);
-}
-
-// 定时器线程主循环
-void TaskTimer::timerLoop()
-{
-    PjSipUtils::ThreadRegistrar registrar; // 确保线程注册
-    
-    // 修改: 使用更精确的时间控制
-    auto last_time = std::chrono::steady_clock::now();
-    const auto interval_ms = std::chrono::milliseconds(interval_seconds_ * 1000);
-    
-    while (!stop_flag_)
+    if (!running_) 
     {
-        auto current_time = std::chrono::steady_clock::now();
-        auto elapsed = current_time - last_time;
+        LOG(INFO) << "Timer is not running, no need to stop.";
+        return;
+    }
 
-        if (elapsed >= interval_ms)
-        {
-            last_time = current_time;
-            
-            // 修改: 安全地复制回调以减少锁持有时间
-            TimerCallback cb_copy;
-            {
-                std::lock_guard<std::mutex> lock(cb_mutex_);
-                cb_copy = callback_;
-            }
-            
-            if (cb_copy)
-            {
-                try {
-                    LOG(INFO) << "TaskTimer: invoking callback";
-                    cb_copy();
-                } catch (const std::exception& e) {
-                    LOG(ERROR) << "Timer callback exception: " << e.what();
-                }
-            }
-        } else {
-            // 修改: 使用更短的睡眠时间，提高对stop_flag的响应性
-            std::this_thread::sleep_for(std::chrono::milliseconds(50));
-        }
+    
+    // 修复：使用条件变量通知线程停止
+    {
+        LOG(INFO) << "Stopping timer thread...";
+        std::lock_guard<std::mutex> lock(cv_mutex_);
+        stop_flag_ = true;
+    }
+    cv_.notify_all();
+    
+    if (timer_thread_.joinable())
+    {
+        timer_thread_.join();
+    }
+
+    
+    // 修复：清空任务列表
+    {
+        std::lock_guard<std::mutex> lock(task_mutex_);
+        LOG(INFO) << "Clearing task list...";
+        tasks_.clear();
+        LOG(INFO) << "Task list cleared.";
     }
     
-    LOG(INFO) << "Timer loop exited";
+    running_ = false;
+    LOG(INFO) << "Timer stopped successfully";
+}
+
+void TaskTimer::addTask(const Task& task)
+{
+    // 修复：添加锁保护任务列表
+    std::lock_guard<std::mutex> lock(task_mutex_);
+    LOG(INFO) << "Adding task to task list...";
+    tasks_.push_back(task);
+}
+
+void TaskTimer::setInterval(unsigned int ms)
+{
+    interval_ms_ = ms;
+    LOG(INFO) << "Setting interval to " << ms << " milliseconds";
 }

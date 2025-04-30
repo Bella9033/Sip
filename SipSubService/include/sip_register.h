@@ -28,13 +28,17 @@ public:
     // 从ISipRegister接口实现
     void startRegService() override;
 
+    void registerProc(); 
+    pj_status_t gbRegister(DomainInfo& domains); 
 private:
-    void registerProc();
-    pj_status_t gbRegister(DomainInfo& domains);
 
     // 使用weak_ptr避免循环引用
     std::weak_ptr<SipRegister> sip_reg_;
     std::shared_ptr<TaskTimer> reg_timer_;
     std::mutex register_mutex_;
     
+    // 修复：添加初始化状态标志和互斥锁
+    std::mutex init_mutex_;
+    bool initialized_;
+
 };

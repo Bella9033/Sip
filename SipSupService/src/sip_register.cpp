@@ -41,10 +41,12 @@ void SipRegister::startRegService()
     {
         // 修复：确保只初始化一次
         std::lock_guard<std::mutex> lock(init_mutex_);
-        if (!initialized_) {
-            LOG(INFO) << "Register timer started.";
+        LOG(INFO) << "Lock acquired for initialization.";
+        if (!initialized_) 
+        {
             reg_timer_->start(); // 使用统一的start接口名称
             initialized_ = true;
+            LOG(INFO) << "Register timer initialized.";
         }
     }
 }
@@ -55,7 +57,9 @@ pj_status_t SipRegister::runRxTask(SipTypes::RxDataPtr rdata)
     
     // 修复：确保实例已初始化（即使从其他线程调用）
     std::lock_guard<std::mutex> lock(init_mutex_);
-    if (!initialized_) {
+    LOG(INFO) << "Lock acquired for runRxTask.";
+    if (!initialized_) 
+    {
         initialized_ = true;
     }
     

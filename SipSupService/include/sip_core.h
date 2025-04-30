@@ -10,7 +10,8 @@
 #include "pjsip_utils.h"
 #include "ev_thread.h"
 #include "interfaces/isip_core.h"
-#include "thread_params.h"
+
+#include "thread_params.h" // 线程参数类
 
 // 前向声明
 class SipRegTaskBase;

@@ -11,7 +11,6 @@
 #include "ev_thread.h"
 #include "interfaces/isip_core.h"
 
-
 // 前向声明
 class SipRegTaskBase;
 
@@ -26,7 +25,7 @@ public:
     // 实现ISipCore接口
     pj_status_t initSip(int sip_port) override;
     SipTypes::EndpointPtr getEndPoint() const override { return endpt_; }
-   
+    
     void pollingEventLoop(SipTypes::EndpointPtr endpt);
 
     // 原始指针版本的回调（供PJSIP使用）
@@ -38,9 +37,11 @@ public:
     static std::atomic<bool> stop_pool_;
     static pjsip_module recv_mod;
 
+    
 private:
-    // 使用智能指针替换原始指针
+
     SipTypes::CachingPoolPtr caching_pool_;
     SipTypes::EndpointPtr endpt_;
     SipTypes::PoolPtr pool_;
+
 };

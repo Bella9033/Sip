@@ -1,5 +1,8 @@
+// sip_register.cpp
+
 #include "sip_register.h"
 #include "global_ctl.h"
+#include "pjsip_utils.h" // 显式包含PjSipUtils
 
 #include <array>
 #include <chrono>
@@ -15,8 +18,8 @@ std::shared_ptr<SipRegister> SipRegister::createInstance()
 
 // 构造函数中获取IDomainManager引用
 SipRegister::SipRegister()
-    : reg_timer_(std::make_shared<TaskTimer>())    
-{}
+    : reg_timer_(std::make_shared<TaskTimer>())
+{ }
 
 SipRegister::~SipRegister() 
 {
@@ -26,7 +29,6 @@ SipRegister::~SipRegister()
     }
     LOG(INFO) << "SipRegister destroyed";
 }
-
 
 static void client_cb(struct pjsip_regc_cbparam *param)
 {

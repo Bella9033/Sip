@@ -1,5 +1,5 @@
 // sip_types.h
-
+// 负责类型定义和智能指针包装
 #pragma once
 
 #include <memory>
@@ -7,56 +7,59 @@
 
 // SIP数据类型的智能指针封装
 namespace SipTypes {
-    // 定义基本PJSIP类型的智能指针
+    // 定义智能指针类型及其删除器
+    using TxDataPtr = std::shared_ptr<pjsip_tx_data>;
     using RxDataPtr = std::shared_ptr<pjsip_rx_data>;
     using EndpointPtr = std::shared_ptr<pjsip_endpoint>;
     using CachingPoolPtr = std::shared_ptr<pj_caching_pool>;
     using PoolPtr = std::shared_ptr<pj_pool_t>;
     
-    // RxData 相关工具函数
-    inline RxDataPtr cloneRxData(pjsip_rx_data* raw_data) 
-    {
-        if (!raw_data) return nullptr;
-        
-        pjsip_rx_data* cloned_data { nullptr };
-        pj_status_t status = pjsip_rx_data_clone(raw_data, 0, &cloned_data);
-        if (status != PJ_SUCCESS || !cloned_data) 
-        {
-            return nullptr;
+    // 删除器定义集中放在这里，保证一致性
+    // 修改：将删除器单独定义为结构体，提高可测试性和可维护性
+    struct Deleters {
+        static void deleteTxData(pjsip_tx_data* p) {
+            if (p) pjsip_tx_data_dec_ref(p);
         }
         
-        // 使用自定义删除器
-        return RxDataPtr(cloned_data, [](pjsip_rx_data* p) {
+        static void deleteRxData(pjsip_rx_data* p) {
             if (p) pjsip_rx_data_free_cloned(p);
-        });
-    }
-    
-    // 包装现有的 pjsip_rx_data 指针（不克隆）
-    inline RxDataPtr wrapRxData(pjsip_rx_data* raw_data, bool should_free = false) 
-    {
-        if (!raw_data) return nullptr;
-        
-        if (should_free) 
-        {
-            return RxDataPtr(raw_data, [](pjsip_rx_data* p) {
-                if (p) pjsip_rx_data_free_cloned(p);
-            });
-        } else {
-            return RxDataPtr(raw_data, [](pjsip_rx_data*) {
-                // 空删除器，不释放资源
-            });
         }
+        
+        static void deleteEndpoint(pjsip_endpoint* p) {
+            if (p) pjsip_endpt_destroy(p);
+        }
+        
+        static void deleteCachingPool(pj_caching_pool* p) {
+            if (p) {
+                pj_caching_pool_destroy(p);
+                delete p;  // 注意：这里需要delete，因为我们使用了new
+            }
+        }
+        
+        static void deletePool(pj_pool_t* p) {
+            if (p) pj_pool_release(p);
+        }
+    };
+    
+    // 修改：定义创建智能指针的工厂函数
+    inline TxDataPtr makeTxData(pjsip_tx_data* p) {
+        return p ? TxDataPtr(p, Deleters::deleteTxData) : nullptr;
     }
     
-    // 用于回调的便捷方法
-    inline RxDataPtr wrapRxDataForCallback(pjsip_rx_data* raw_data)
-    {
-        return wrapRxData(raw_data, false);
+    inline RxDataPtr makeRxData(pjsip_rx_data* p) {
+        return p ? RxDataPtr(p, Deleters::deleteRxData) : nullptr;
     }
     
-    // 辅助函数：检查智能指针是否有效
-    template<typename T>
-    inline bool isValid(const std::shared_ptr<T>& ptr) {
-        return ptr != nullptr;
+    inline EndpointPtr makeEndpoint(pjsip_endpoint* p) {
+        return p ? EndpointPtr(p, Deleters::deleteEndpoint) : nullptr;
     }
+    
+    inline CachingPoolPtr makeCachingPool(pj_caching_pool* p) {
+        return p ? CachingPoolPtr(p, Deleters::deleteCachingPool) : nullptr;
+    }
+    
+    inline PoolPtr makePool(pj_pool_t* p) {
+        return p ? PoolPtr(p, Deleters::deletePool) : nullptr;
+    }
+
 }

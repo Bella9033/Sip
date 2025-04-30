@@ -38,9 +38,11 @@ public:
     static std::atomic<bool> stop_pool_;
     static pjsip_module recv_mod;
 
+    
 private:
-    // 使用智能指针
+
     SipTypes::CachingPoolPtr caching_pool_;
     SipTypes::EndpointPtr endpt_;
     SipTypes::PoolPtr pool_;
+
 };

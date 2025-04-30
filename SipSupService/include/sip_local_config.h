@@ -11,7 +11,7 @@
 #include <vector>
 #include <mutex>
 
-// 修改SipLocalConfig实现IConfigProvider接口
+// SipLocalConfig实现IConfigProvider接口
 class SipLocalConfig : public IConfigProvider
 {
 public:

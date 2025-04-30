@@ -31,7 +31,7 @@ private:
     void timerLoop();
 
     std::thread timer_thread_;
-    //std::vector<Task> tasks_;
+    std::vector<Task> tasks_;
     bool running_;
     unsigned int interval_ms_;
     

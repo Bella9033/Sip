@@ -19,29 +19,37 @@ class SipRegister : public SipRegTaskBase,
                     public std::enable_shared_from_this<SipRegister>
 {
 public:
-    static std::shared_ptr<SipRegister> createInstance();
+    // 使用真正的单例模式，而不是每次调用createInstance创建新实例
+    static std::shared_ptr<SipRegister> getInstance();
     
-    SipRegister();
+public:
     virtual ~SipRegister();
 
     // 实现基类的纯虚函数
     pj_status_t runRxTask(SipTypes::RxDataPtr rdata) override;
     pj_status_t registerReqMsg(SipTypes::RxDataPtr rdata) override;
-    
+
     // 从ISipRegister接口实现
     void startRegService() override;
-    
+
 private:
+    // 私有化构造函数，防止外部创建实例
+    SipRegister();
+
     pj_status_t handleReg(SipTypes::RxDataPtr rdata);
 
+    // 单例实例
+    static std::shared_ptr<SipRegister> instance_;
+    static std::mutex singleton_mutex_;
+    
     // 使用weak_ptr避免循环引用
     std::weak_ptr<SipRegister> sip_reg_;
     std::shared_ptr<TaskTimer> reg_timer_;
     std::mutex register_mutex_;
     
-    // 修复：添加初始化状态标志和互斥锁
+    // 添加初始化状态标志和互斥锁
     std::mutex init_mutex_;
-    bool initialized_;
+    bool initialized_{false}; // 确保正确初始化
     
     // 依赖注入：域名管理器的引用
     IDomainManager& domain_manager_;

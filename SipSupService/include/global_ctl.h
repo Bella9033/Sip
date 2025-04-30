@@ -41,9 +41,10 @@ public:
     // 实现IDomainManager接口
     void buildDomainInfoList() override;
     bool checkIsValid(const std::string& id) const override;
-    void setExpires(std::string_view id, int expires) override;
+    void setRegValue(std::string_view id, 
+        int expires, bool registered, time_t last_reg_time) override;
     std::vector<DomainInfo>& getDomainInfoList() override { return domain_info_list_; }
-    
+      
     std::mutex reg_mutex_;
     
 private:

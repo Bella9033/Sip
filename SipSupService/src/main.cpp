@@ -40,7 +40,8 @@ int main(int argc, char* argv[])
 
     LOG(INFO) << "local_ip is: " << GCONF(getLocalIp);
 
-    auto regc = SipRegister::createInstance();
+    // 修改：使用单例模式获取SipRegister实例
+    auto regc = SipRegister::getInstance();
     regc->startRegService();
 
     while (true)
@@ -48,31 +49,4 @@ int main(int argc, char* argv[])
         std::this_thread::sleep_for(std::chrono::seconds(30));
     }
     return 0;
-
-// 假设 createThread 已在 ThreadUtil 命名空间中定义
-// using namespace ThreadUtil;
-
-
-    // // 1. 准备要在线程中执行的函数（这里是 lambda）
-    // auto func = [](int a, const std::string& msg) {
-    //     std::cout << msg << ": " << (a * 2) << std::endl;
-    //     return a * 2;
-    // };
-
-    // // 2. 将实参打包到 tuple 中
-    // auto args = std::make_tuple(21, std::string("Result"));
-
-    // // 3. 调用 createThread，获取 std::future<int>
-    // auto fut = ThreadUtil::createThread(
-    //     std::move(func),      // Func&& —— 完美转发
-    //     std::move(args)       // tuple<Args...>
-    //     // 其余参数使用默认值：thread_id_out=nullptr, priority=NORMAL, timeout=0
-    // );
-
-    // // 4. 等待线程执行并获取返回值
-    // int result = fut.get();  // 阻塞直到线程完成
-    // std::cout << "Returned: " << result << std::endl;
-    // return 0;
-
-
 }

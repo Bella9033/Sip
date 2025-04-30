@@ -40,6 +40,7 @@ struct DomainInfo
     int auth { 0 };
     int expires { 0};
     bool registered { false };
+    time_t last_reg_time { 0 }; // 添加上次注册时间字段
 
     //std::string last_update_time;  // 添加最后更新时间
 
@@ -52,10 +53,9 @@ struct DomainInfo
         , auth(node.auth)
         , expires(0)
         , registered(false)
+        , last_reg_time(0)
     { }
 
     // 默认构造函数
     DomainInfo() = default;
-
-
 };

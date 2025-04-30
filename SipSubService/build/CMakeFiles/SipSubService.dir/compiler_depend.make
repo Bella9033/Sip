@@ -3978,7 +3978,6 @@ CMakeFiles/SipSubService.dir/mnt/hgfs/share/SubServer/SipSubService/src/main.cpp
   /mnt/hgfs/share/SubServer/SipSubService/include/task_timer.h \
   /mnt/hgfs/share/SubServer/SipSubService/include/ev_thread.h \
   /mnt/hgfs/share/SubServer/SipSubService/include/ev_thread_manager.h \
-  /mnt/hgfs/share/SubServer/SipSubService/include/sip_msg.h \
   /mnt/hgfs/share/SubServer/SipSubService/include/interfaces/isip_register.h
 
 CMakeFiles/SipSubService.dir/mnt/hgfs/share/SubServer/SipSubService/src/pjsip_utils.cpp.o: /mnt/hgfs/share/SubServer/SipSubService/src/pjsip_utils.cpp \

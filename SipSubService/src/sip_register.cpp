@@ -2,23 +2,32 @@
 
 #include "sip_register.h"
 #include "global_ctl.h"
-#include "pjsip_utils.h" // 显式包含PjSipUtils
+#include "pjsip_utils.h"
 
 #include <array>
 #include <chrono>
+#include <ctime>
 
-std::shared_ptr<SipRegister> SipRegister::createInstance()
+// 初始化静态成员
+std::shared_ptr<SipRegister> SipRegister::instance_ = nullptr;
+std::mutex SipRegister::singleton_mutex_;
+
+// 实现单例模式的getInstance方法
+std::shared_ptr<SipRegister> SipRegister::getInstance()
 {
-    auto instance = std::make_shared<SipRegister>();
-    // 使用weak_ptr存储
-    instance->sip_reg_ = instance;
-    LOG(INFO) << "SipRegister instance created";
-    return instance;
+    std::lock_guard<std::mutex> lock(singleton_mutex_);
+    if (!instance_) {
+        instance_ = std::shared_ptr<SipRegister>(new SipRegister());
+        instance_->sip_reg_ = instance_;
+        LOG(INFO) << "SipRegister singleton instance created";
+    }
+    return instance_;
 }
 
 // 构造函数中获取IDomainManager引用
 SipRegister::SipRegister()
-    : reg_timer_(std::make_shared<TaskTimer>())
+    : reg_timer_(std::make_shared<TaskTimer>()),
+      initialized_(false)
 { }
 
 SipRegister::~SipRegister() 
@@ -36,7 +45,7 @@ static void client_cb(struct pjsip_regc_cbparam *param)
     if (param->code == 200) // 如果服务器返回 200 OK，表示注册成功
     {
         // 通过回调上下文中的 token 获取对应的 domain 信息
-        auto* domain =  (DomainInfo*)param->token;
+        auto* domain = (DomainInfo*)param->token;
         if(domain) 
         {
             domain->setRegistered(); // 更新注册状态为已注册
@@ -53,28 +62,28 @@ void SipRegister::startRegService()
     LOG(INFO) << "registerServiceStart called";
     // 启动定时器，定时器会在指定时间间隔内调用 registerProc 函数
     // 用 shared_ptr 管理对象，并用 weak_ptr 安全绑定回调，避免悬垂指针和内存泄漏。
-    std::weak_ptr<SipRegister> self_weak = shared_from_this(); // 获取当前对象的弱引用
+    std::weak_ptr<SipRegister> self_weak = shared_from_this(); 
     if (reg_timer_) 
     {  
         // 设置定时器到时回调（Lambda捕获this，调用成员函数）
         reg_timer_->addTask([self_weak]() { 
             // 尝试获取当前对象的强引用
             // 如果对象仍然存在，则调用 registerProc
-            if (self_weak.lock()) 
+            if (auto ptr = self_weak.lock()) 
             { 
                 LOG(INFO) << "Register timer triggered.";
-                self_weak.lock()->registerProc();
+                ptr->registerProc(); // 使用获取的强引用调用方法
             } else 
             {
                 LOG(ERROR) << "Failed to lock weak pointer, object may be destroyed.";
             }
         });
-        // 修复：确保只初始化一次
+        // 确保只初始化一次
         std::lock_guard<std::mutex> lock(init_mutex_);
         LOG(INFO) << "Lock acquired for initialization.";
         if (!initialized_) 
         {
-            reg_timer_->start(); // 使用统一的start接口名称
+            reg_timer_->start(); 
             initialized_ = true;
             LOG(INFO) << "Register timer initialized.";
         }
@@ -107,6 +116,7 @@ void SipRegister::registerProc()
     }
 }
 
+// 其余函数保持不变...
 // 发起SIP REGISTER请求，注册指定下级域
 // 注册请求的来源信息正确反映了本地节点信息
 // 目标信息指向要注册的下级域

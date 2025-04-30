@@ -42,9 +42,9 @@ int main(int argc, char* argv[])
 
     LOG(INFO) << "local_ip is: " << GlobalCtl::getInstance().getConfig().getLocalIp();
 
-    auto regc = SipRegister::createInstance();
+    // 修改：使用单例模式获取SipRegister实例
+    auto regc = SipRegister::getInstance();
     regc->startRegService();
-
 
     while (true)
     {

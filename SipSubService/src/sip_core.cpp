@@ -17,9 +17,9 @@ pjsip_module SipCore::recv_mod = {
 
 void SipCore::pollingEventLoop(SipTypes::EndpointPtr endpt) 
 {
-    LOG(INFO) << "pollingEventLoop called";
+    LOG(INFO) << "pollingEventLoop started";
     
-    // 修复：确保线程已注册到PJSIP
+    // 确保线程已注册到PJSIP
     PjSipUtils::ThreadRegistrar thread_registrar;
     
     if (!endpt) 
@@ -32,7 +32,7 @@ void SipCore::pollingEventLoop(SipTypes::EndpointPtr endpt)
     {
         pj_time_val timeout = {0, 500};
         pj_status_t status = pjsip_endpt_handle_events(endpt.get(), &timeout);
-        // 修复：正确处理超时状态，PJ_ETIMEDOUT是正常的超时返回
+        // 正确处理超时状态，PJ_ETIMEDOUT是正常的超时返回
         if (status != PJ_SUCCESS && status != PJ_ETIMEDOUT)
         {
             LOG(ERROR) << "pollingEventLoop failed, code: " << status;
@@ -51,7 +51,6 @@ pj_bool_t SipCore::onRxRequestRaw(pjsip_rx_data* rdata)
     }
 
     // 立即克隆数据
-    // 使用PjSipUtils::cloneRxData而非直接调用SipTypes::cloneRxData
     auto rdata_ptr = PjSipUtils::cloneRxData(rdata);
     if (!rdata_ptr) 
     {
@@ -137,7 +136,7 @@ pj_status_t SipCore::initSip(int sip_port)
         return status;
     }
     
-    // 修复：添加默认池名称
+    // 添加默认池名称
     pool_ = PjSipUtils::createEndptPool(endpt_, "sipcore-pool", SIP_ALLOC_POOL_1M, SIP_ALLOC_POOL_1M);
     if (!pool_)
     {
@@ -151,7 +150,7 @@ pj_status_t SipCore::initSip(int sip_port)
         return PJ_ENOMEM;
     }
 
-    // 修复：安全创建线程
+    // 安全创建线程
     auto self = shared_from_this();
     auto endpt_copy = endpt_;
     

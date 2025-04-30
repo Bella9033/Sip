@@ -79,17 +79,26 @@ bool GlobalCtl::checkIsValid(const std::string& id) const
     );
 }
 
-void GlobalCtl::setExpires(std::string_view id, int expires)
+void GlobalCtl::setRegValue(std::string_view id, 
+    int expires, bool registered, time_t last_reg_time)
 {
     std::lock_guard<std::mutex> lock(domain_mutex_);
-    if(auto it = std::find_if(
-        domain_info_list_.begin(), domain_info_list_.end(),
-        [&id](const DomainInfo& domains){
-            return domains.sip_id == id;
-        });
-        it != domain_info_list_.end())
-    {
-        it->expires = expires;
-        LOG(INFO) << fmt::format("Set expires for ID {} to {}", id, expires);
+    auto domain = std::find_if(
+        domain_info_list_.begin(), 
+        domain_info_list_.end(),
+        [&id](const DomainInfo& domain) { 
+            return domain.sip_id == id; 
+        }
+    );
+    
+    if (domain != domain_info_list_.end()) {
+        domain->registered = registered;
+        domain->expires = expires;
+        domain->last_reg_time = last_reg_time;
+        LOG(INFO) << fmt::format("Domain {} updated: expires {}, registered {}, last_reg_time {}", 
+                                id, expires, registered ? "true" : "false", last_reg_time);
+       
+    } else {
+        LOG(WARNING) << fmt::format("Domain {} not found in domain_info_list_", id);
     }
 }

@@ -1,6 +1,7 @@
 // pjsip_utils.cpp
 #include "pjsip_utils.h"
 
+
 // ===== 资源创建函数实现 =====
 // 使用SipTypes工厂函数创建智能指针
 SipTypes::CachingPoolPtr PjSipUtils::createCachingPool(pj_size_t sipStackSize) 
@@ -154,17 +155,29 @@ pj_status_t PjSipUtils::initTransports(SipTypes::EndpointPtr endpt, int sip_port
 }
 
 // ===== 线程注册函数 =====
+// 增加线程安全相关的改进
 pj_status_t PjSipUtils::registerThread() 
 {
-    pj_thread_desc desc;
-    pj_thread_t* thread = nullptr;
-    if (!pj_thread_is_registered()) 
+    // 修复：每个线程需要专有的描述符
+    static thread_local bool registered = false;
+    static thread_local pj_thread_desc desc;
+    static thread_local pj_thread_t* thread = nullptr;
+    
+    if (!registered) 
     {
-        return pj_thread_register(nullptr, desc, &thread);
+        pj_status_t status = pj_thread_register(nullptr, desc, &thread);
+        if (status == PJ_SUCCESS) 
+        {
+            registered = true;
+            return PJ_SUCCESS;
+        }
+        return status;
     }
+    
     LOG(INFO) << "Thread already registered";
     return PJ_SUCCESS;
 }
+
 
 // ===== 线程注册器构造函数 =====
 PjSipUtils::ThreadRegistrar::ThreadRegistrar()
@@ -193,7 +206,6 @@ void PjSipUtils::cleanupCore(SipTypes::CachingPoolPtr& caching_pool,
     pj_shutdown();
     LOG(INFO) << "PJSIP core cleanup completed";
 }
-
 
 
 

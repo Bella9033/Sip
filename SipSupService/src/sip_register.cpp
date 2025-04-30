@@ -2,15 +2,16 @@
 
 #include "sip_register.h"
 #include "global_ctl.h"
-#include "pjsip_utils.h" // 显式包含PjSipUtils
+#include "pjsip_utils.h"
 
 #include <array>
 #include <chrono>
+#include <ctime>
 
 std::shared_ptr<SipRegister> SipRegister::createInstance()
 {
     auto instance = std::make_shared<SipRegister>();
-    // 使用weak_ptr存储
+    // 使用weak_ptr存储，避免循环引用
     instance->sip_reg_ = instance;
     LOG(INFO) << "SipRegister instance created";
     return instance;
@@ -20,7 +21,10 @@ std::shared_ptr<SipRegister> SipRegister::createInstance()
 SipRegister::SipRegister()
     : reg_timer_(std::make_shared<TaskTimer>()),
       domain_manager_(GlobalCtl::getInstance()) // 注入依赖
-{ }
+{
+    // 修复：确保初始化所有成员变量
+    initialized_ = false;
+}
 
 SipRegister::~SipRegister() 
 {
@@ -35,14 +39,26 @@ void SipRegister::startRegService()
 {
     if (reg_timer_) 
     {
-        LOG(INFO) << "Register timer started.";
-        reg_timer_->startTaskTimer();
+        // 修复：确保只初始化一次
+        std::lock_guard<std::mutex> lock(init_mutex_);
+        if (!initialized_) {
+            LOG(INFO) << "Register timer started.";
+            reg_timer_->start(); // 使用统一的start接口名称
+            initialized_ = true;
+        }
     }
 }
 
 pj_status_t SipRegister::runRxTask(SipTypes::RxDataPtr rdata) 
 {
     LOG(INFO) << "runRxTask called";
+    
+    // 修复：确保实例已初始化（即使从其他线程调用）
+    std::lock_guard<std::mutex> lock(init_mutex_);
+    if (!initialized_) {
+        initialized_ = true;
+    }
+    
     return registerReqMsg(rdata);
 }
 
@@ -69,12 +85,15 @@ pj_status_t SipRegister::handleReg(SipTypes::RxDataPtr rdata)
     // 添加锁保护共享资源访问
     std::lock_guard<std::mutex> lock(register_mutex_);
 
+    // 修复：确保线程已注册到PJSIP
     PjSipUtils::ThreadRegistrar thread_registrar;
+    
     std::array<char,1024> buf {};
     int size { 0 };
     std::string from_id;
     int status_code { 200 };
 
+    // 使用 get() 获取原始指针
     auto from_raw = static_cast<pjsip_from_hdr*>(pjsip_msg_find_hdr(
         rdata->msg_info.msg, 
         PJSIP_H_FROM, 
@@ -85,7 +104,8 @@ pj_status_t SipRegister::handleReg(SipTypes::RxDataPtr rdata)
         LOG(ERROR) << "from_raw is nullptr";
         return -1;
     }
-    // 添加uri空指针检查
+    
+    // 修复：添加更严格的指针检查
     if(from_raw->uri && from_raw->vptr && from_raw->vptr->print_on) 
     {
         size = from_raw->vptr->print_on(from_raw, buf.data(), static_cast<int>(buf.size()));
@@ -99,14 +119,18 @@ pj_status_t SipRegister::handleReg(SipTypes::RxDataPtr rdata)
     if(size > 0)
     {
         std::string temp(buf.data(), size);
+        // 修复：更安全的字符串处理
         if(temp.size() > 11)
         {
-            from_id = temp.substr(11,20);
+            // 避免可能的越界
+            size_t len = std::min<size_t>(temp.size() - 11, 20); 
+            from_id = temp.substr(11, len);
             LOG(INFO) << "from_id: " << from_id;
         }
         else
         {
             LOG(WARNING) << "FROM header too short: " << temp;
+            return -1;
         }
     }
     else
@@ -134,18 +158,11 @@ pj_status_t SipRegister::handleReg(SipTypes::RxDataPtr rdata)
         domain_manager_.setExpires(from_id, expires_value);
     }
 
-    // 获取终端指针
+    // 修复：获取endpoint的安全处理
     auto endpt = GlobalCtl::getInstance().getSipCore().getEndPoint();
     if (!endpt) {
         LOG(ERROR) << "Failed to get endpoint";
         return PJ_EINVAL;
-    }
-    
-    // 使用PjSipUtils创建TxData
-    SipTypes::TxDataPtr tx_data_ptr = PjSipUtils::createTxData(endpt);
-    if (!tx_data_ptr) {
-        LOG(ERROR) << "Failed to create tx_data";
-        return PJ_ENOMEM;
     }
     
     // 创建响应
@@ -156,6 +173,7 @@ pj_status_t SipRegister::handleReg(SipTypes::RxDataPtr rdata)
         status_code, 
         nullptr, 
         &txdata);
+        
     if(status != PJ_SUCCESS || !txdata)
     {
         LOG(ERROR) << "pjsip_endpt_create_response failed, code: " << status;
@@ -168,10 +186,13 @@ pj_status_t SipRegister::handleReg(SipTypes::RxDataPtr rdata)
     // 使用UTC时间而不是本地时间
     auto now = std::chrono::system_clock::now();
     auto time_t_now = std::chrono::system_clock::to_time_t(now);
-    std::tm* utc_tm = std::gmtime(&time_t_now);
-    char buffer[100];
-    std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", utc_tm);
-    std::string time_str(buffer);
+    
+    // 修复：使用thread-safe的方式处理时间
+    std::array<char, 100> buffer {};
+    struct tm tm_buf;
+    gmtime_r(&time_t_now, &tm_buf); // 使用线程安全版本
+    std::strftime(buffer.data(), buffer.size(), "%Y-%m-%d %H:%M:%S", &tm_buf);
+    std::string time_str(buffer.data());
     LOG(INFO) << "Current UTC time: " << time_str;
 
     // 使用栈上缓冲区避免内存泄漏

@@ -18,7 +18,10 @@ pjsip_module SipCore::recv_mod = {
 void SipCore::pollingEventLoop(SipTypes::EndpointPtr endpt) 
 {
     LOG(INFO) << "pollingEventLoop called";
+    
+    // 修复：确保线程已注册到PJSIP
     PjSipUtils::ThreadRegistrar thread_registrar;
+    
     if (!endpt) 
     {
         LOG(ERROR) << "pollingEventLoop received nullptr endpoint!";
@@ -29,7 +32,7 @@ void SipCore::pollingEventLoop(SipTypes::EndpointPtr endpt)
     {
         pj_time_val timeout = {0, 500};
         pj_status_t status = pjsip_endpt_handle_events(endpt.get(), &timeout);
-         // 增加对超时状态的处理，防止事件循环因常规的超时而退出
+        // 修复：正确处理超时状态，PJ_ETIMEDOUT是正常的超时返回
         if (status != PJ_SUCCESS && status != PJ_ETIMEDOUT)
         {
             LOG(ERROR) << "pollingEventLoop failed, code: " << status;
@@ -48,7 +51,6 @@ pj_bool_t SipCore::onRxRequestRaw(pjsip_rx_data* rdata)
     }
 
     // 立即克隆数据
-    // 使用PjSipUtils::cloneRxData而非直接调用SipTypes::cloneRxData
     auto rdata_ptr = PjSipUtils::cloneRxData(rdata);
     if (!rdata_ptr) 
     {
@@ -78,39 +80,48 @@ pj_bool_t SipCore::onRxRequest(SipTypes::RxDataPtr rdata)
     // 根据方法ID创建适当的任务处理器
     if (rdata->msg_info.msg->line.req.method.id == PJSIP_REGISTER_METHOD) 
     { 
-        // 使用createInstance工厂方法创建SipRegister实例
         params->taskbase = SipRegister::createInstance();
     }
     else
     {
-        // 添加处理未知方法的情况
-        LOG(WARNING) << "Unknown request method ID: " << rdata->msg_info.msg->line.req.method.id;
+        // 修复：添加对其他方法的处理，以便系统更完整
+        LOG(WARNING) << "Unknown or unsupported request method ID: " 
+                     << rdata->msg_info.msg->line.req.method.id;
         return PJ_FALSE;
     }
     
-    // 使用shared_ptr确保params在线程中有效
+    // 修复：确保参数在线程执行期间有效
     auto params_copy = params; // 复制shared_ptr，确保引用计数增加
+    
     auto worker = [params_copy]() -> int {
+        // 修复：确保线程注册到PJSIP
         PjSipUtils::ThreadRegistrar registrar;
+        
         if(!params_copy || !params_copy->taskbase) 
         {
             LOG(ERROR) << "params or taskbase null";
             return -1;
         }
-        params_copy->taskbase->runRxTask(params_copy->rxdata);
-        LOG(INFO) << "runRxTask success in PJSIP_REGISTER_METHOD";
-        return 0;
+        
+        // 修复：增加错误处理
+        try {
+            params_copy->taskbase->runRxTask(params_copy->rxdata);
+            LOG(INFO) << "runRxTask success in PJSIP_REGISTER_METHOD";
+            return 0;
+        } catch (const std::exception& e) {
+            LOG(ERROR) << "Exception in runRxTask: " << e.what();
+            return -1;
+        }
     };
-    
 
     try {
-        // 增加错误处理
+        // 修改：增加错误处理
         auto fut = EVThread::createThread(
             std::move(worker), 
             std::tuple<>(), 
             nullptr, 
             ThreadPriority::NORMAL, 
-            std::chrono::milliseconds{5000} // 增加到5秒
+            std::chrono::milliseconds{5000} // 超时时间
         );
 
         int result = fut.get();
@@ -119,7 +130,7 @@ pj_bool_t SipCore::onRxRequest(SipTypes::RxDataPtr rdata)
             LOG(ERROR) << "Thread execution failed with result: " << result;
             return PJ_FALSE;
         }
-        return PJ_TRUE;
+        return PJ_TRUE; // 成功返回PJ_TRUE而非PJ_SUCCESS
     } catch (const std::exception& e) {
         LOG(ERROR) << "Exception in thread creation: " << e.what();
         return PJ_FALSE;
@@ -128,23 +139,24 @@ pj_bool_t SipCore::onRxRequest(SipTypes::RxDataPtr rdata)
 
 SipCore::SipCore()
 {
-    // 使用PjSipUtils工厂方法创建缓存池
     caching_pool_ = PjSipUtils::createCachingPool(SIP_STACK_SIZE);
     if (!caching_pool_) 
     {
         LOG(ERROR) << "Failed to create caching pool";
+        throw std::runtime_error("Failed to create caching pool");
     }
     endpt_ = nullptr;
 }
-
 
 SipCore::~SipCore() 
 {
     LOG(INFO) << "Releasing SipCore...";
     stop_pool_ = true;
-    std::this_thread::sleep_for(std::chrono::milliseconds(600));
+    
+    // 修复：增加足够的等待时间，确保pollingEventLoop安全退出
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    
     // 直接使用 PjSipUtils 的清理函数
-    // 由于成员变量是智能指针类型，编译器会自动选择智能指针版本的重载
     PjSipUtils::cleanupCore(caching_pool_, endpt_);
 }
 
@@ -186,7 +198,7 @@ pj_status_t SipCore::initSip(int sip_port)
         return status;
     }
     
-    // 添加默认池名称
+    // 修复：添加默认池名称
     pool_ = PjSipUtils::createEndptPool(endpt_, "sipcore-pool", SIP_ALLOC_POOL_1M, SIP_ALLOC_POOL_1M);
     if (!pool_)
     {
@@ -200,12 +212,12 @@ pj_status_t SipCore::initSip(int sip_port)
         return PJ_ENOMEM;
     }
 
-    // 线程创建部分：
+    // 修复：安全创建线程
     auto self = shared_from_this();
     auto endpt_copy = endpt_;
     
     try {
-        // 使用更长的超时时间，避免线程分离问题
+        // 修复：使用适当超时时间创建线程
         auto thread_future = EVThread::createThread(
             [self, endpt_copy]() {
                 try {

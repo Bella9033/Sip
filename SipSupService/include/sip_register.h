@@ -9,6 +9,7 @@
 
 #include <memory>
 #include <mutex>
+#include <atomic>
 
 // 前向声明
 class SipCore;
@@ -37,6 +38,10 @@ private:
     std::weak_ptr<SipRegister> sip_reg_;
     std::shared_ptr<TaskTimer> reg_timer_;
     std::mutex register_mutex_;
+    
+    // 修复：添加初始化状态标志和互斥锁
+    std::mutex init_mutex_;
+    bool initialized_;
     
     // 依赖注入：域名管理器的引用
     IDomainManager& domain_manager_;

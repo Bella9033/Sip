@@ -543,4 +543,9 @@ CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/sip_regi
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../include/ev_thread_pool.h \
  /usr/include/c++/11/queue /usr/include/c++/11/bits/stl_queue.h \
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../include/interfaces/isip_core.h \
- /mnt/hgfs/share/SupServer/SipSupService/cmake/../include/interfaces/iconfig_provider.h
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../include/interfaces/iconfig_provider.h \
+ /usr/include/x86_64-linux-gnu/sys/sysinfo.h /usr/include/linux/kernel.h \
+ /usr/include/linux/sysinfo.h /usr/include/linux/types.h \
+ /usr/include/x86_64-linux-gnu/asm/types.h \
+ /usr/include/asm-generic/types.h /usr/include/asm-generic/int-ll64.h \
+ /usr/include/linux/const.h

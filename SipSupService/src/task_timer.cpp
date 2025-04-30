@@ -1,14 +1,14 @@
-// task_timer.cpp
-#include "task_timer.h"
-
+// task_timer.cpp - 修复版
 #include "task_timer.h"
 #include "pjsip_utils.h"
 
-std::atomic<bool> TaskTimer::stop_flag_{false};
+// 删除静态成员初始化
+// std::atomic<bool> TaskTimer::stop_flag_{false};
 
 TaskTimer::TaskTimer()
     : running_(false),
-      interval_ms_(3000) // 默认3秒
+      interval_ms_(3000), // 默认3秒
+      stop_flag_(false)   // 初始化实例成员
 {
 }
 
@@ -23,14 +23,14 @@ void TaskTimer::start()
     LOG(INFO) << "Creating timer thread...";
     if (running_)  return; // 已经在运行
     
-    // 修复：确保在启动线程前重置stop_flag_
+    // 确保在启动线程前重置stop_flag_
     stop_flag_ = false;
     
     // 使用智能指针管理线程对象
     timer_thread_ = std::thread(&TaskTimer::timerLoop, this);
     running_ = true;
     
-    // 修复：添加日志并返回前确认线程已启动
+    // 添加日志并返回前确认线程已启动
     LOG(INFO) << "Timer started successfully";
 }
 
@@ -38,12 +38,12 @@ void TaskTimer::timerLoop()
 {
     LOG(INFO) << "Timer thread started, id=" << std::this_thread::get_id();
     
-    // 修复：确保线程一开始就注册PJSIP
+    // 确保线程一开始就注册PJSIP
     PjSipUtils::ThreadRegistrar thread_registrar;
     
-    while (!stop_flag_)
+    while (!stop_flag_.load()) // 使用实例成员，不是静态成员
     {
-        // 修复：添加互斥锁保护任务列表访问
+        // 添加互斥锁保护任务列表访问
         {
             std::lock_guard<std::mutex> lock(task_mutex_);
             LOG(INFO) << "Lock acquired for task execution.";
@@ -53,7 +53,7 @@ void TaskTimer::timerLoop()
             }
         }
         
-        // 修复：使用条件变量而不是sleep，以便更快响应停止请求
+        // 使用条件变量而不是sleep，以便更快响应停止请求
         std::unique_lock<std::mutex> lock(cv_mutex_);
         LOG(INFO) << "Waiting for next interval...";
         // 使用 .load() 读取原子变量的值
@@ -71,8 +71,7 @@ void TaskTimer::stop()
         return;
     }
 
-    
-    // 修复：使用条件变量通知线程停止
+    // 使用条件变量通知线程停止
     {
         LOG(INFO) << "Stopping timer thread...";
         std::lock_guard<std::mutex> lock(cv_mutex_);
@@ -84,9 +83,8 @@ void TaskTimer::stop()
     {
         timer_thread_.join();
     }
-
     
-    // 修复：清空任务列表
+    // 清空任务列表
     {
         std::lock_guard<std::mutex> lock(task_mutex_);
         LOG(INFO) << "Clearing task list...";
@@ -100,7 +98,7 @@ void TaskTimer::stop()
 
 void TaskTimer::addTask(const Task& task)
 {
-    // 修复：添加锁保护任务列表
+    // 添加锁保护任务列表
     std::lock_guard<std::mutex> lock(task_mutex_);
     LOG(INFO) << "Adding task to task list...";
     tasks_.push_back(task);

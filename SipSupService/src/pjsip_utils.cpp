@@ -154,6 +154,7 @@ pj_status_t PjSipUtils::initTransports(SipTypes::EndpointPtr endpt, int sip_port
     return initTransports(endpt.get(), sip_port);
 }
 
+// pjsip_utils.cpp 中的线程注册函数部分 - 修复版
 // ===== 线程注册函数 =====
 // 增加线程安全相关的改进
 pj_status_t PjSipUtils::registerThread() 
@@ -186,8 +187,10 @@ PjSipUtils::ThreadRegistrar::ThreadRegistrar()
     if (status != PJ_SUCCESS) 
     {
         LOG(ERROR) << "Thread registration failed, code: " << status;
+        throw std::runtime_error("Thread registration failed");  // 修复：失败时抛出异常
     }
 }
+
 
 // ===== 资源清理 - 智能指针版本 =====
 void PjSipUtils::cleanupCore(SipTypes::CachingPoolPtr& caching_pool, 

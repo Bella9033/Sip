@@ -1,4 +1,4 @@
-// sip_register.h
+// sip_register.h - 修复版
 #pragma once
 
 #include "common.h"

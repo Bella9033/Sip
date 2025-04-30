@@ -7,6 +7,7 @@
 #include <array>
 #include <chrono>
 #include <ctime>
+#include <sys/sysinfo.h>
 
 // 初始化静态成员
 std::shared_ptr<SipRegister> SipRegister::instance_ = nullptr;
@@ -118,7 +119,8 @@ pj_status_t SipRegister::handleReg(SipTypes::RxDataPtr rdata)
     // 添加更严格的指针检查
     if(from_raw->uri && from_raw->vptr && from_raw->vptr->print_on) 
     {
-        size = from_raw->vptr->print_on(from_raw, buf.data(), static_cast<int>(buf.size()));
+        size = from_raw->vptr->print_on(from_raw, buf.data(), 
+            static_cast<int>(buf.size()));
     }
     else
     {
@@ -228,6 +230,10 @@ pj_status_t SipRegister::handleReg(SipTypes::RxDataPtr rdata)
     {
         LOG(ERROR) << "pjsip_endpt_send_response failed, code: " << status;
         return status;
+    }
+    if(status_code == 200)
+    {
+        LOG(INFO) << "DOSO";
     }
     // txdata_guard会自动释放资源
     return PJ_SUCCESS;

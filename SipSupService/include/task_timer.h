@@ -1,5 +1,4 @@
-// task_timer.h
-
+// task_timer.h - 修复版
 #pragma once
 #include "common.h"
 #include "pjsip_utils.h"
@@ -13,7 +12,7 @@
 #include <thread>
 #include <memory>
 
- // 允许使用 weak_from_this()
+// 允许使用 weak_from_this()
 class TaskTimer : public std::enable_shared_from_this<TaskTimer>
 {
 public:
@@ -35,13 +34,13 @@ private:
     bool running_;
     unsigned int interval_ms_;
     
-    // 修复：添加互斥锁保护任务列表
+    // 保护任务列表的互斥锁
     std::mutex task_mutex_;
     
-    // 修复：使用条件变量实现更优雅的线程停止
+    // 使用条件变量实现更优雅的线程停止
     std::mutex cv_mutex_;
     std::condition_variable cv_;
     
-    // 使用静态原子布尔值作为停止标志
-    static std::atomic<bool> stop_flag_;
+    // 修改: 将stop_flag_从静态成员改为实例成员，避免共享问题
+    std::atomic<bool> stop_flag_{false};
 };

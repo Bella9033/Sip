@@ -1,3 +1,5 @@
+// ev_thread_pool.h - 修复版
+
 #pragma once
 
 #include <vector>
@@ -68,22 +70,8 @@ public:
         return res;
     }
 
-#if defined(__cpp_lib_move_only_function) && __cpp_lib_move_only_function >= 202110L
-    // C++20/23: 支持move_only_function和lambda简洁写法
-    template<class Func>
-    void submitCXX20(int priority, Func&& f)
-    {
-        {
-            std::lock_guard<std::mutex> lock(queue_mutex_);
-            if (stop_) throw std::runtime_error("ThreadPool stopped");
-            tasks_.emplace(Task{priority, std::move(f)});
-            ++total_enqueued_;
-        }
-        condition_.notify_one();
-    }
-#endif
-
-    void setThreadCount(size_t n); // 动态调整线程数
+    // 修改: 实现setThreadCount方法
+    void setThreadCount(size_t n); 
     size_t size() const;
     bool isRunning() const;
 
@@ -98,6 +86,9 @@ public:
 private:
     void worker_loop();
     void addWorker();
+    
+    // 修改: 添加移除工作线程方法
+    void removeWorker(size_t count = 1);
 
     std::vector<std::thread> workers_;
     std::priority_queue<Task> tasks_;
@@ -109,4 +100,10 @@ private:
     std::atomic<uint64_t> total_enqueued_{0};
     std::atomic<uint64_t> total_completed_{0};
     std::atomic<size_t> active_thread_count_{0};
+    
+    // 修改: 用vector<bool>替代atomic<bool>的vector
+    std::vector<bool> worker_exit_flags_;
+    // 存储线程ID到索引的映射
+    std::mutex thread_map_mutex_;
+    std::unordered_map<std::thread::id, size_t> thread_to_index_;
 };

@@ -63,6 +63,7 @@ pj_status_t SipRegister::handleReg(SipTypes::RxDataPtr rdata)
         return PJ_EINVAL;
     }
 
+    PjSipUtils::ThreadRegistrar thread_registrar;
     std::array<char,1024> buf {};
     int size { 0 };
     std::string from_id;

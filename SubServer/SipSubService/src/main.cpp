@@ -29,7 +29,6 @@ int main(int argc, char* argv[])
     srand(time(0));
     SetLogLevel glog(SetLogLevel::LogLevel::INFO);
 
-    LOG(INFO) << "========= Test SipCore =========";
 
     // 创建一个SipLocalConfig实例
     auto config = std::make_unique<SipLocalConfig>();

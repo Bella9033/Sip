@@ -127,15 +127,25 @@ pj_status_t SipCore::initSip(int sip_port)
         return PJ_ENOMEM;
     }
 
+    // 修改线程创建部分：
     auto self = shared_from_this();
     auto endpt_copy = endpt_;
-    std::thread th_event([self, endpt_copy]() {
-        try {
-            self->pollingEventLoop(endpt_copy);
-        } catch (const std::exception& e) {
-            LOG(ERROR) << "Exception in pollingEventLoop: " << e.what();
-        }
-    });
-    th_event.detach();
+    
+    // 修改: 使用更长的超时时间，避免线程分离问题
+    auto thread_future = EVThread::createThread(
+        [self, endpt_copy]() {
+            try {
+                self->pollingEventLoop(endpt_copy);
+            } catch (const std::exception& e) {
+                LOG(ERROR) << "Exception in pollingEventLoop: " << e.what();
+            }
+        },
+        std::tuple<>(),
+        nullptr,
+        ThreadPriority::NORMAL,
+        std::chrono::milliseconds{30000} // 增加超时时间到30秒
+    );
+    
+    // 注: 不需要detach，由超时机制处理
     return PJ_SUCCESS;
 }

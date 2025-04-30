@@ -69,7 +69,7 @@ pj_bool_t SipCore::onRxRequest(SipTypes::RxDataPtr rdata)
         params->taskbase = std::make_shared<SipRegister>();
     }
     
-    // 创建工作线程函数
+    // 修改线程创建部分：
     auto worker = [params]() -> int {
         PjSipUtils::ThreadRegistrar registrar;
         if(!params || !params->taskbase) 
@@ -82,12 +82,13 @@ pj_bool_t SipCore::onRxRequest(SipTypes::RxDataPtr rdata)
         return 0;
     };
 
+    // 修改: 增加超时时间，避免过早分离线程
     std::future<int> fut = EVThread::createThread(
         std::move(worker), 
         std::tuple<>(), 
         nullptr, 
         ThreadPriority::NORMAL, 
-        std::chrono::milliseconds{50}
+        std::chrono::milliseconds{5000} // 增加到5秒
     );
 
     if(fut.get() != 0) 
@@ -167,15 +168,25 @@ pj_status_t SipCore::initSip(int sip_port)
         return PJ_ENOMEM;
     }
 
+    // 修改线程创建部分：
     auto self = shared_from_this();
     auto endpt_copy = endpt_;
-    std::thread th_event([self, endpt_copy]() {
-        try {
-            self->pollingEventLoop(endpt_copy);
-        } catch (const std::exception& e) {
-            LOG(ERROR) << "Exception in pollingEventLoop: " << e.what();
-        }
-    });
-    th_event.detach();
+    
+    // 修改: 使用更长的超时时间，避免线程分离问题
+    auto thread_future = EVThread::createThread(
+        [self, endpt_copy]() {
+            try {
+                self->pollingEventLoop(endpt_copy);
+            } catch (const std::exception& e) {
+                LOG(ERROR) << "Exception in pollingEventLoop: " << e.what();
+            }
+        },
+        std::tuple<>(),
+        nullptr,
+        ThreadPriority::NORMAL,
+        std::chrono::milliseconds{30000} // 增加超时时间到30秒
+    );
+    
+    // 注: 不需要detach，由超时机制处理
     return PJ_SUCCESS;
 }

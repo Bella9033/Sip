@@ -168,6 +168,10 @@ pj_bool_t SipCore::onRxRequestRaw(pjsip_rx_data* rdata)
 pj_bool_t SipCore::onRxRequest(SipTypes::RxDataPtr rdata)
 {
     LOG(INFO) << "onRxRequest called";
+    
+    // 添加线程注册，因为这是处理接收SIP请求的回调
+    PjSipUtils::ThreadRegistrar thread_registrar;
+    
     if (!rdata || !rdata->msg_info.msg) 
     {
         LOG(ERROR) << "rdata or msg_info is null";
@@ -175,6 +179,7 @@ pj_bool_t SipCore::onRxRequest(SipTypes::RxDataPtr rdata)
     }
 
     LOG(INFO) << "onRxRequest: " << pjsip_rx_data_get_info(rdata.get());
+
 
     // 创建参数对象
     auto params = std::make_shared<ThRxParams>();

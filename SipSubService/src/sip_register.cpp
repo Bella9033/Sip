@@ -90,6 +90,7 @@ static void client_cb(struct pjsip_regc_cbparam *param)
 void SipRegister::registerProc() 
 {
     LOG(INFO) << "registerProc called";
+    PjSipUtils::ThreadRegistrar thread_registrar;
     std::lock_guard<std::mutex> lock(register_mutex_);
     auto& domains = GlobalCtl::getInstance().getDomainInfoList();
     LOG(INFO) << "UpNodeInfo domains size: " << domains.size();

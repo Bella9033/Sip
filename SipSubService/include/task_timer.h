@@ -1,4 +1,4 @@
-// task_timer.h - 使用EVThread修改版
+// task_timer.h
 #pragma once
 #include "common.h"
 #include <atomic>

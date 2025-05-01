@@ -41,6 +41,9 @@ SipCore::~SipCore()
 
 void SipCore::pollingEventLoop(SipTypes::EndpointPtr endpt) 
 {
+    // 需要在这里添加线程注册，因为这是处理SIP消息的主循环线程
+    PjSipUtils::ThreadRegistrar thread_registrar; 
+
     if (!endpt) 
     {
         LOG(ERROR) << "pollingEventLoop received nullptr endpoint!";
@@ -163,6 +166,8 @@ pj_bool_t SipCore::onRxRequestRaw(pjsip_rx_data* rdata)
 
 pj_bool_t SipCore::onRxRequest(SipTypes::RxDataPtr rdata)
 {
+    // 添加线程注册，因为这是处理接收SIP请求的回调
+    PjSipUtils::ThreadRegistrar thread_registrar;
     LOG(INFO) << "onRxRequest called";
     if (!rdata || !rdata->msg_info.msg) 
     {

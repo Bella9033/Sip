@@ -15,6 +15,7 @@ TaskTimer::~TaskTimer() {
 }
 
 bool TaskTimer::start() {
+    LOG(INFO) << "Starting TaskTimer...";
     // 使用互斥锁保护线程创建
     std::lock_guard<std::mutex> lock(thread_mutex_);
     
@@ -93,7 +94,7 @@ void TaskTimer::timerLoop()
 {
     LOG(INFO) << "Timer thread started, id=" << std::this_thread::get_id();
     
-    // 确保线程一开始就注册PJSIP
+    // registerProc处理SIP注册请求，需要线程注册以正确处理SIP协议栈操作
     PjSipUtils::ThreadRegistrar thread_registrar;
     
     // 主定时器循环

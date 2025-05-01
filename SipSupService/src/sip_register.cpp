@@ -57,6 +57,8 @@ void SipRegister::startRegService()
 
 pj_status_t SipRegister::runRxTask(SipTypes::RxDataPtr rdata) 
 {
+    // 处理SIP消息数据(RxDataPtr)，调用链中涉及SIP栈操作，需要添加线程注册
+    PjSipUtils::ThreadRegistrar thread_registrar;
     LOG(INFO) << "runRxTask called";
     return registerReqMsg(rdata);
 }
@@ -64,6 +66,8 @@ pj_status_t SipRegister::runRxTask(SipTypes::RxDataPtr rdata)
 
 pj_status_t SipRegister::registerReqMsg(SipTypes::RxDataPtr rdata)
 {
+    // 处理SIP消息数据(RxDataPtr)，调用链中涉及SIP栈操作，需要添加线程注册
+    PjSipUtils::ThreadRegistrar thread_registrar;
     if (!rdata) 
     {
         LOG(ERROR) << "registerReqMsg: rdata is null";
@@ -75,13 +79,14 @@ pj_status_t SipRegister::registerReqMsg(SipTypes::RxDataPtr rdata)
 pj_status_t SipRegister::handleRegister(SipTypes::RxDataPtr rdata)
 {
     LOG(INFO) << "handleRegister called";
+    // 处理SIP消息数据(RxDataPtr)，调用链中涉及SIP栈操作，需要添加线程注册
+    PjSipUtils::ThreadRegistrar thread_registrar;
     if (!rdata || !rdata->msg_info.msg) 
     {
         LOG(ERROR) << "handleRegister: rdata or message is null";
         return PJ_EINVAL;
     }
 
-    PjSipUtils::ThreadRegistrar thread_registrar;
     
     std::string from_id;
     try{

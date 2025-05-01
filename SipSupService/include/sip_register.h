@@ -21,14 +21,11 @@ class SipRegister : public SipRegTaskBase,
                     public std::enable_shared_from_this<SipRegister>
 {
 public:
-    // 单例获取方法
-    static std::shared_ptr<SipRegister> getInstance();
-    
-    // 析构函数
+    // 接受必要的依赖
+    explicit SipRegister(IDomainManager& domain_manager);
     ~SipRegister() override;
 
-public:      
-    // ISipRegister 接口实现
+public:
     void startRegService() override;
 
 public:   
@@ -36,23 +33,18 @@ public:
     pj_status_t runRxTask(SipTypes::RxDataPtr rdata) override;
     pj_status_t registerReqMsg(SipTypes::RxDataPtr rdata) override;
     
-private:
-    // 私有构造函数
-    SipRegister();
     
-    // 禁用复制
-    SipRegister(const SipRegister&) = delete;
-    SipRegister& operator=(const SipRegister&) = delete;
-    
-    // 处理注册请求
+private:   
+    // 注册相关方法
     pj_status_t handleRegister(SipTypes::RxDataPtr rdata);
     std::string parseFromHeader(pjsip_msg* msg);
     bool addDateHeader(pjsip_msg* msg, pj_pool_t* pool);
     void updateRegistrationStatus(const std::string& from_id, pj_int32_t expires_value);
 
+private:   
     std::shared_ptr<TaskTimer> reg_timer_;
     std::mutex register_mutex_;
     
     // 依赖注入
-    IDomainManager& domain_manager_;
+    IDomainManager& domain_manager_; 
 };

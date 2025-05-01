@@ -21,8 +21,10 @@ bool GlobalCtl::init(std::unique_ptr<IConfigProvider> config)
         LOG(ERROR) << "GlobalCtl instance readConfig failed!";
         return false;
     }
-    
+
+    // 构建域信息列表
     buildDomainInfoList();
+
     if (domain_info_list_.empty()) 
     {
         LOG(ERROR) << "GlobalCtl instance buildDomainInfoList failed!";
@@ -40,6 +42,7 @@ bool GlobalCtl::init(std::unique_ptr<IConfigProvider> config)
     }
     
     g_sip_core_->initSip(g_config_->getSipPort());
+ 
     LOG(INFO) << "GlobalCtl instance init success!";
     return true;
 }
@@ -47,8 +50,9 @@ bool GlobalCtl::init(std::unique_ptr<IConfigProvider> config)
 void GlobalCtl::buildDomainInfoList()
 {
     LOG(INFO) << "Building DomainInfo list...";
-    std::unique_lock<std::shared_mutex> lock(domain_mutex_);  // 写锁
     const auto& nodes = g_config_->getNodeInfoList();
+    // 使用写锁保护域信息映射表
+    std::unique_lock<std::shared_mutex> lock(domain_mutex_);
     domain_info_list_.clear();
     domain_info_list_.reserve(nodes.size());
 
@@ -62,7 +66,8 @@ void GlobalCtl::buildDomainInfoList()
 bool GlobalCtl::checkIsValid(const std::string& id) const
 {
     LOG(INFO) << "Checking if domain is valid: " << id;
-    std::shared_lock<std::shared_mutex> lock(domain_mutex_);  // 读锁
+    // 使用读锁访问域信息映射表
+    std::shared_lock<std::shared_mutex> lock(domain_mutex_);
     return std::any_of(
         domain_info_list_.begin(),
         domain_info_list_.end(),
@@ -88,7 +93,7 @@ DomainInfo* GlobalCtl::findDomain(std::string_view id)
 
 void GlobalCtl::setExpires(std::string_view id, int expires_value) 
 {
-    std::unique_lock<std::shared_mutex> lock(domain_mutex_);  // 写锁
+
     auto domain = findDomain(id);
     if (domain) 
     {
@@ -104,7 +109,6 @@ void GlobalCtl::setExpires(std::string_view id, int expires_value)
 
 void GlobalCtl::setRegistered(std::string_view id, bool registered_value) 
 {
-    std::unique_lock<std::shared_mutex> lock(domain_mutex_);  // 写锁
     auto domain = findDomain(id);
     if (domain) 
     {
@@ -136,10 +140,11 @@ void GlobalCtl::setLastRegTime(std::string_view id, time_t last_reg_time_value)
 // 批量原子更新接口
 void GlobalCtl::updateRegistration(std::string_view id, int expires_new, bool registered_new, time_t last_reg_time_new)
 {
-    std::unique_lock<std::shared_mutex> lock(domain_mutex_);  // 写锁
     auto domain = findDomain(id);
     if (domain)
     {
+        // 使用写锁保护注册信息映射表
+        std::unique_lock<std::shared_mutex> lock(register_mutex_);
         domain->expires = expires_new;
         domain->registered = registered_new;
         domain->last_reg_time = last_reg_time_new;

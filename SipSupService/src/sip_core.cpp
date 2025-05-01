@@ -2,6 +2,7 @@
 
 #include "sip_core.h"
 #include "sip_register.h"
+#include "global_ctl.h"
 
 std::atomic<bool> SipCore::stop_pool_{false};
 
@@ -187,10 +188,9 @@ pj_bool_t SipCore::onRxRequest(SipTypes::RxDataPtr rdata)
     // 这里不需要再次克隆，直接使用传入的智能指针
     params->rxdata = rdata;
     
-    // 使用单例模式获取SipRegister实例
     if (rdata->msg_info.msg->line.req.method.id == PJSIP_REGISTER_METHOD) 
     { 
-        params->taskbase = SipRegister::getInstance();
+        params->taskbase = std::make_shared<SipRegister>(GlobalCtl::getInstance());
     }
     else
     {

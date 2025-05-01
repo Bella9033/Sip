@@ -10,6 +10,7 @@
 #include "pjsip_utils.h"
 #include "ev_thread.h"
 #include "interfaces/isip_core.h"
+#include "interfaces/idomain_manager.h"
 
 
 // 前向声明

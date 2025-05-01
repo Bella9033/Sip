@@ -4950,14 +4950,16 @@ CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/sip_core
   /usr/include/c++/11/queue \
   /usr/include/c++/11/bits/stl_queue.h \
   /mnt/hgfs/share/SupServer/SipSupService/include/interfaces/isip_core.h \
+  /mnt/hgfs/share/SupServer/SipSupService/include/interfaces/idomain_manager.h \
+  /mnt/hgfs/share/SupServer/SipSupService/include/node_info.h \
+  /usr/include/c++/11/shared_mutex \
   /mnt/hgfs/share/SupServer/SipSupService/include/thread_params.h \
   /mnt/hgfs/share/SupServer/SipSupService/include/sip_task_base.h \
   /mnt/hgfs/share/SupServer/SipSupService/include/sip_register.h \
   /mnt/hgfs/share/SupServer/SipSupService/include/task_timer.h \
   /mnt/hgfs/share/SupServer/SipSupService/include/interfaces/isip_register.h \
-  /mnt/hgfs/share/SupServer/SipSupService/include/interfaces/idomain_manager.h \
-  /mnt/hgfs/share/SupServer/SipSupService/include/node_info.h \
-  /usr/include/c++/11/shared_mutex
+  /mnt/hgfs/share/SupServer/SipSupService/include/global_ctl.h \
+  /mnt/hgfs/share/SupServer/SipSupService/include/interfaces/iconfig_provider.h
 
 CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/sip_local_config.cpp.o: /mnt/hgfs/share/SupServer/SipSupService/src/sip_local_config.cpp \
   /usr/include/stdc-predef.h \

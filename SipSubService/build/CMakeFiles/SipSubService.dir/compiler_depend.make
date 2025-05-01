@@ -4948,12 +4948,12 @@ CMakeFiles/SipSubService.dir/mnt/hgfs/share/SubServer/SipSubService/src/sip_core
   /usr/include/c++/11/queue \
   /usr/include/c++/11/bits/stl_queue.h \
   /mnt/hgfs/share/SubServer/SipSubService/include/interfaces/isip_core.h \
-  /mnt/hgfs/share/SubServer/SipSubService/include/sip_register.h \
-  /mnt/hgfs/share/SubServer/SipSubService/include/task_timer.h \
-  /mnt/hgfs/share/SubServer/SipSubService/include/interfaces/isip_register.h \
   /mnt/hgfs/share/SubServer/SipSubService/include/interfaces/idomain_manager.h \
   /mnt/hgfs/share/SubServer/SipSubService/include/node_info.h \
   /usr/include/c++/11/shared_mutex \
+  /mnt/hgfs/share/SubServer/SipSubService/include/sip_register.h \
+  /mnt/hgfs/share/SubServer/SipSubService/include/task_timer.h \
+  /mnt/hgfs/share/SubServer/SipSubService/include/interfaces/isip_register.h \
   /mnt/hgfs/share/SubServer/SipSubService/include/sip_msg.h
 
 CMakeFiles/SipSubService.dir/mnt/hgfs/share/SubServer/SipSubService/src/sip_local_config.cpp.o: /mnt/hgfs/share/SubServer/SipSubService/src/sip_local_config.cpp \

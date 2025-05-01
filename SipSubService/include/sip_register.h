@@ -20,32 +20,24 @@ class SipRegister : public ISipRegister,
                     public std::enable_shared_from_this<SipRegister>
 {
 public:
-    // 单例获取方法
-    static std::shared_ptr<SipRegister> getInstance();
-    
-    // 析构函数
+    // 接受必要的依赖
+    explicit SipRegister(IDomainManager& domain_manager);
     ~SipRegister() override;
-   
-public:
-    // 从ISipRegister接口实现
-    void startRegService() override;
 
 public:
+    void startRegService() override;
+
+private:
+    // 注册处理函数
     void registerProc(); 
     pj_status_t gbRegister(DomainInfo& domains); 
+
 private:
-    // 启动注册服务
-    SipRegister();
-    // 注册处理回调函数
-    void handleRegistration();
-    
-    // 禁用复制
-    SipRegister(const SipRegister&) = delete;
-    SipRegister& operator=(const SipRegister&) = delete;
-    
 
     std::shared_ptr<TaskTimer> reg_timer_;
     std::mutex register_mutex_;
     
-     
+    
+    // 依赖注入
+    IDomainManager& domain_manager_;      
 };

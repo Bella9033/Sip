@@ -10,20 +10,10 @@
 #include <sys/sysinfo.h>
 #include <exception>
 
-std::shared_ptr<SipRegister> SipRegister::getInstance() 
-{
-    static std::shared_ptr<SipRegister> instance{new SipRegister()};
-    LOG(INFO) << "Getting SipRegister instance";
-    return instance;
-}
-
-SipRegister::SipRegister() 
+SipRegister::SipRegister(IDomainManager& domain_manager) 
     : reg_timer_(std::make_shared<TaskTimer>())
+    , domain_manager_(domain_manager)
 {
-    if (!reg_timer_) 
-    {
-        LOG(ERROR) << "Failed to create registration timer";
-    }
     reg_timer_->setInterval(3000); // 设置3秒间隔
 }
 

@@ -9,12 +9,17 @@
 #include "common.h"
 #include "pjsip_utils.h"
 #include "ev_thread.h"
+
 #include "interfaces/isip_core.h"
+#include "interfaces/idomain_manager.h"
 
 #include "thread_params.h" // 线程参数类
 
 // 前向声明
 class SipRegTaskBase;
+class SipRegister;
+class IDomainManager;
+class GlobalCtl;
 
 // 实现ISipCore接口
 class SipCore : public ISipCore, 
@@ -45,5 +50,6 @@ private:
     SipTypes::CachingPoolPtr caching_pool_;
     SipTypes::EndpointPtr endpt_;
     SipTypes::PoolPtr pool_;
+
 
 };

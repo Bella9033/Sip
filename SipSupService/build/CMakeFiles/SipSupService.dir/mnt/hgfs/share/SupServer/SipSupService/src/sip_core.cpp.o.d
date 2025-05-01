@@ -538,11 +538,13 @@ CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/sip_core
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../include/ev_thread_pool.h \
  /usr/include/c++/11/queue /usr/include/c++/11/bits/stl_queue.h \
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../include/interfaces/isip_core.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../include/interfaces/idomain_manager.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../include/node_info.h \
+ /usr/include/c++/11/shared_mutex \
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../include/thread_params.h \
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../include/sip_task_base.h \
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../include/sip_register.h \
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../include/task_timer.h \
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../include/interfaces/isip_register.h \
- /mnt/hgfs/share/SupServer/SipSupService/cmake/../include/interfaces/idomain_manager.h \
- /mnt/hgfs/share/SupServer/SipSupService/cmake/../include/node_info.h \
- /usr/include/c++/11/shared_mutex
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../include/global_ctl.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../include/interfaces/iconfig_provider.h

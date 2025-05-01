@@ -41,7 +41,7 @@ int main(int argc, char* argv[])
     LOG(INFO) << "local_ip is: " << GCONF(getLocalIp);
 
 
-    auto reg = SipRegister::getInstance();
+    auto reg = std::make_shared<SipRegister>(GlobalCtl::getInstance());
     if (!reg) 
     {
         LOG(ERROR) << "Failed to get SipRegister instance";

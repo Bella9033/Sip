@@ -55,7 +55,13 @@ private:
     GlobalCtl& operator=(const GlobalCtl&) = delete;
 
     // 使用读写锁替代互斥锁，提高并发性
-    mutable std::shared_mutex domain_mutex_; 
+    // 域信息映射表，使用共享互斥锁保护
+    mutable std::shared_mutex domain_mutex_;
+    // 注册信息映射表，使用共享互斥锁保护
+    mutable std::shared_mutex register_mutex_;
+    
+
+
     // 添加原子操作计数器
     std::atomic<size_t> update_counter_{0};
 

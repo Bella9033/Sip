@@ -276,8 +276,6 @@ CMakeFiles/SipSubService.dir/mnt/hgfs/share/SubServer/SipSubService/src/main.cpp
  /usr/include/c++/11/pstl/execution_defs.h \
  /mnt/hgfs/share/SubServer/SipSubService/cmake/../include/interfaces/iconfig_provider.h \
  /mnt/hgfs/share/SubServer/SipSubService/cmake/../include/node_info.h \
- /mnt/hgfs/share/SubServer/SipSubService/cmake/../include/interfaces/idomain_manager.h \
- /mnt/hgfs/share/SubServer/SipSubService/cmake/../include/global_ctl.h \
  /mnt/hgfs/share/SubServer/SipSubService/cmake/../include/common.h \
  /mnt/hgfs/share/SubServer/SipSubService/cmake/../include/log_level.h \
  /mnt/hgfs/share/SubServer/SipSubService/cmake/../../../Third/include/glog/logging.h \
@@ -581,6 +579,9 @@ CMakeFiles/SipSubService.dir/mnt/hgfs/share/SubServer/SipSubService/src/main.cpp
  /mnt/hgfs/share/SubServer/SipSubService/cmake/../../../Third/include/pjsip/pj/sock_select.h \
  /mnt/hgfs/share/SubServer/SipSubService/cmake/../../../Third/include/pjsip/pj/unicode.h \
  /mnt/hgfs/share/SubServer/SipSubService/cmake/../../../Third/include/pjsip/pj/unittest.h \
+ /mnt/hgfs/share/SubServer/SipSubService/cmake/../include/interfaces/idomain_manager.h \
+ /usr/include/c++/11/shared_mutex \
+ /mnt/hgfs/share/SubServer/SipSubService/cmake/../include/global_ctl.h \
  /mnt/hgfs/share/SubServer/SipSubService/cmake/../include/ev_thread_pool.h \
  /usr/include/c++/11/queue /usr/include/c++/11/bits/stl_queue.h \
  /usr/include/c++/11/future /usr/include/c++/11/mutex \
@@ -596,6 +597,5 @@ CMakeFiles/SipSubService.dir/mnt/hgfs/share/SubServer/SipSubService/src/main.cpp
  /mnt/hgfs/share/SubServer/SipSubService/cmake/../include/sip_register.h \
  /mnt/hgfs/share/SubServer/SipSubService/cmake/../include/task_timer.h \
  /mnt/hgfs/share/SubServer/SipSubService/cmake/../include/ev_thread.h \
- /mnt/hgfs/share/SubServer/SipSubService/cmake/../include/ev_thread_manager.h \
- /mnt/hgfs/share/SubServer/SipSubService/cmake/../include/sip_msg.h \
- /mnt/hgfs/share/SubServer/SipSubService/cmake/../include/interfaces/isip_register.h
+ /mnt/hgfs/share/SubServer/SipSubService/cmake/../include/interfaces/isip_register.h \
+ /mnt/hgfs/share/SubServer/SipSubService/cmake/../include/sip_msg.h

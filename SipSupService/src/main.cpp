@@ -40,9 +40,15 @@ int main(int argc, char* argv[])
 
     LOG(INFO) << "local_ip is: " << GCONF(getLocalIp);
 
-    // 修改：使用单例模式获取SipRegister实例
-    auto regc = SipRegister::getInstance();
-    regc->startRegService();
+
+    auto reg = SipRegister::getInstance();
+    if (!reg) 
+    {
+        LOG(ERROR) << "Failed to get SipRegister instance";
+        return -1;
+    }
+    reg->startRegService();
+
 
     while (true)
     {

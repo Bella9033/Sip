@@ -81,12 +81,12 @@ clean: CMakeFiles/SipSubService.dir/clean
 CMakeFiles/SipSubService.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/SipSubService.dir/build.make CMakeFiles/SipSubService.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/SipSubService.dir/build.make CMakeFiles/SipSubService.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/mnt/hgfs/share/SubServer/SipSubService/build/CMakeFiles --progress-num=1,2,3,4,5,6,7,8,9,10,11,12,13 "Built target SipSubService"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/mnt/hgfs/share/SubServer/SipSubService/build/CMakeFiles --progress-num=1,2,3,4,5,6,7,8,9,10,11,12 "Built target SipSubService"
 .PHONY : CMakeFiles/SipSubService.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/SipSubService.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /mnt/hgfs/share/SubServer/SipSubService/build/CMakeFiles 13
+	$(CMAKE_COMMAND) -E cmake_progress_start /mnt/hgfs/share/SubServer/SipSubService/build/CMakeFiles 12
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/SipSubService.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /mnt/hgfs/share/SubServer/SipSubService/build/CMakeFiles 0
 .PHONY : CMakeFiles/SipSubService.dir/rule

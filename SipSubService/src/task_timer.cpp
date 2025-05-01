@@ -1,113 +1,148 @@
-// task_timer.cpp
-#include "task_timer.h"
-
+// task_timer.cpp - 使用EVThread修改版
 #include "task_timer.h"
 #include "pjsip_utils.h"
-
-std::atomic<bool> TaskTimer::stop_flag_{false};
+#include "ev_thread.h" // 引入EVThread
+#include <chrono>
 
 TaskTimer::TaskTimer()
-    : running_(false),
-      interval_ms_(3000) // 默认3秒
+    : timer_thread_id_(std::make_shared<std::atomic<std::thread::id>>()), 
+      timer_future_(std::make_shared<std::future<void>>())
 {
 }
 
-TaskTimer::~TaskTimer()
-{
-    LOG(INFO) << "Destroying TaskTimer...";
+TaskTimer::~TaskTimer() {
     stop();
 }
 
-void TaskTimer::start()
-{
-    LOG(INFO) << "Creating timer thread...";
-    if (running_)  return; // 已经在运行
+bool TaskTimer::start() {
+    // 使用互斥锁保护线程创建
+    std::lock_guard<std::mutex> lock(thread_mutex_);
     
-    // 修复：确保在启动线程前重置stop_flag_
-    stop_flag_ = false;
+    // 检查线程是否已在运行
+    if (running_) {
+        LOG(INFO) << "TaskTimer already running";
+        return true;
+    }
     
-    // 使用智能指针管理线程对象
-    timer_thread_ = std::thread(&TaskTimer::timerLoop, this);
-    running_ = true;
+    // 重置停止标志
+    stop_requested_ = false;
     
-    // 修复：添加日志并返回前确认线程已启动
-    LOG(INFO) << "Timer started successfully";
+    try {
+        // 使用EVThread创建定时器线程
+        *timer_future_ = EVThread::createThread(
+            &TaskTimer::timerLoop,
+            std::make_tuple(this),
+            timer_thread_id_,
+            ThreadPriority::NORMAL
+        );
+        
+        running_ = true;
+        LOG(INFO) << "TaskTimer started successfully with thread ID: " << timer_thread_id_->load();
+        return true;
+    } catch (const std::exception& e) {
+        LOG(ERROR) << "Failed to start TaskTimer: " << e.what();
+        return false;
+    }
 }
 
-void TaskTimer::timerLoop()
+void TaskTimer::stop() 
+{
+    LOG(INFO) << "Stopping TaskTimer...";
+    
+    // 只有在运行时才需要停止
+    if (!running_)
+    {
+        LOG(INFO) << "TaskTimer not running, no need to stop";
+        return;
+    }
+    
+    // 发出停止信号
+    stop_requested_ = true;
+    cv_.notify_all();
+    
+    // 等待线程结束或超时
+    try {
+        if (timer_future_ && timer_future_->valid()) {
+            // 等待最多2秒
+            std::chrono::milliseconds timeout(2000);
+            auto status = timer_future_->wait_for(timeout);
+            
+            if (status == std::future_status::timeout) {
+                LOG(WARNING) << "TaskTimer thread did not exit within timeout";
+            } else {
+                LOG(INFO) << "TaskTimer thread exited normally";
+            }
+        }
+    } catch (const std::exception& e) {
+        LOG(ERROR) << "Exception when waiting for timer thread: " << e.what();
+    }
+    
+    // 清空任务队列
+    {
+        std::lock_guard<std::mutex> lock(task_mutex_);
+        tasks_.clear();
+        LOG(INFO) << "Task queue cleared";
+    }
+    
+    // 标记为未运行
+    running_ = false;
+    LOG(INFO) << "TaskTimer stopped successfully";
+}
+
+void TaskTimer::timerLoop() 
 {
     LOG(INFO) << "Timer thread started, id=" << std::this_thread::get_id();
     
-    // 修复：确保线程一开始就注册PJSIP
+    // 确保线程一开始就注册PJSIP
     PjSipUtils::ThreadRegistrar thread_registrar;
     
-    while (!stop_flag_)
-    {
-        // 修复：添加互斥锁保护任务列表访问
+    // 主定时器循环
+    while (!stop_requested_) {
+        // 执行所有任务
+        std::vector<Task> current_tasks;
         {
+            // 复制任务列表以避免长时间持有锁
             std::lock_guard<std::mutex> lock(task_mutex_);
-            LOG(INFO) << "Lock acquired for task execution.";
-            for (const auto& task : tasks_)
+            current_tasks = tasks_;
+        }
+        
+        // 执行任务
+        for (const auto& task : current_tasks) {
+            if (task && !stop_requested_) 
             {
-                if (task) task();
+                try {
+                    task();
+                } catch (const std::exception& e) {
+                    LOG(ERROR) << "Exception in timer task: " << e.what();
+                }
             }
         }
         
-        // 修复：使用条件变量而不是sleep，以便更快响应停止请求
-        std::unique_lock<std::mutex> lock(cv_mutex_);
-        LOG(INFO) << "Waiting for next interval...";
-        // 使用 .load() 读取原子变量的值
-        cv_.wait_for(lock, std::chrono::milliseconds(interval_ms_),
-             [this]() { return stop_flag_.load(); });
-        LOG(INFO) << "Interval elapsed, resuming task execution...";
+        // 使用条件变量等待，可快速响应停止请求
+        {
+            std::unique_lock<std::mutex> lock(task_mutex_);
+            cv_.wait_for(lock, std::chrono::milliseconds(interval_ms_),
+                         [this]() { return stop_requested_.load(); });
+        }
     }
+    
+    LOG(INFO) << "Timer thread exiting";
 }
 
-void TaskTimer::stop()
+void TaskTimer::addTask(Task task) 
 {
-    if (!running_) 
-    {
-        LOG(INFO) << "Timer is not running, no need to stop.";
+    if (!task) {
+        LOG(WARNING) << "Attempted to add empty task to TaskTimer";
         return;
     }
-
     
-    // 修复：使用条件变量通知线程停止
-    {
-        LOG(INFO) << "Stopping timer thread...";
-        std::lock_guard<std::mutex> lock(cv_mutex_);
-        stop_flag_ = true;
-    }
-    cv_.notify_all();
-    
-    if (timer_thread_.joinable())
-    {
-        timer_thread_.join();
-    }
-
-    
-    // 修复：清空任务列表
-    {
-        std::lock_guard<std::mutex> lock(task_mutex_);
-        LOG(INFO) << "Clearing task list...";
-        tasks_.clear();
-        LOG(INFO) << "Task list cleared.";
-    }
-    
-    running_ = false;
-    LOG(INFO) << "Timer stopped successfully";
-}
-
-void TaskTimer::addTask(const Task& task)
-{
-    // 修复：添加锁保护任务列表
     std::lock_guard<std::mutex> lock(task_mutex_);
-    LOG(INFO) << "Adding task to task list...";
-    tasks_.push_back(task);
+    tasks_.push_back(std::move(task));
+    LOG(INFO) << "Task added to TaskTimer";
 }
 
-void TaskTimer::setInterval(unsigned int ms)
+void TaskTimer::setInterval(unsigned int ms) 
 {
     interval_ms_ = ms;
-    LOG(INFO) << "Setting interval to " << ms << " milliseconds";
+    LOG(INFO) << "TaskTimer interval set to " << ms << " ms";
 }

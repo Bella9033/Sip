@@ -26,12 +26,12 @@ public:
     // 实现ISipCore接口
     pj_status_t initSip(int sip_port) override;
     SipTypes::EndpointPtr getEndPoint() const override { return endpt_; }
-
+    
     void pollingEventLoop(SipTypes::EndpointPtr endpt);
 
     // 原始指针版本的回调（供PJSIP使用）
     static pj_bool_t onRxRequestRaw(pjsip_rx_data* rdata);
-
+    
     // 智能指针版本的回调
     static pj_bool_t onRxRequest(SipTypes::RxDataPtr rdata);
 

@@ -3,14 +3,11 @@
 #include "global_ctl.h"
 #include "sip_core.h"
 
-#include <algorithm>
+
 
 bool GlobalCtl::init(std::unique_ptr<IConfigProvider> config) 
 {
-    LOG(INFO) << "GlobalCtl instance init...";
-    std::lock_guard<std::mutex> lock(g_init_mutex_);
-    
-    // 保存配置提供者
+    LOG(INFO) << "GlobalCtl instance init..."; 
     g_config_ = std::move(config);
     
     if (!g_config_) 
@@ -39,7 +36,6 @@ bool GlobalCtl::init(std::unique_ptr<IConfigProvider> config)
     
     if (!g_sip_core_) 
     {
-        // 创建具体实现类，但存储为接口类型
         g_sip_core_ = std::make_shared<SipCore>();
     }
     
@@ -51,11 +47,8 @@ bool GlobalCtl::init(std::unique_ptr<IConfigProvider> config)
 void GlobalCtl::buildDomainInfoList()
 {
     LOG(INFO) << "Building DomainInfo list...";
-    std::lock_guard<std::mutex>lock(domain_mutex_);
-    
-    // 通过接口获取NodeInfo列表
+    std::unique_lock<std::shared_mutex> lock(domain_mutex_);  // 写锁
     const auto& nodes = g_config_->getNodeInfoList();
-    
     domain_info_list_.clear();
     domain_info_list_.reserve(nodes.size());
 
@@ -63,7 +56,6 @@ void GlobalCtl::buildDomainInfoList()
     {
         domain_info_list_.emplace_back(node);
     }
-    
     LOG(INFO) << "Built " << domain_info_list_.size() << " domain entries";
 }
 

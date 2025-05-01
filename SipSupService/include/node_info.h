@@ -1,11 +1,10 @@
-// node_info.h
-
 #pragma once
 
+#include "common.h"
 #include <string>
-#include <chrono>
-#include <fmt/format.h>
+#include <string_view>
 
+// 节点信息
 struct NodeInfo 
 {
     std::string id;
@@ -14,23 +13,19 @@ struct NodeInfo
     int proto { 0 };
     int auth { 0 };
 
-    // 构造函数，从配置参数构造 NodeInfo
-    NodeInfo(std::string id_, 
-        std::string ip_, 
-        int port_,
-        int proto_,
-        int auth_)
-    : id(std::move(id_))
-    , ip(std::move(ip_))
-    , port(port_)
-    , proto(proto_)
-    , auth(auth_)
+    NodeInfo(std::string id_, std::string ip_, 
+        int port_, int proto_, int auth_)
+        : id(std::move(id_))
+        , ip(std::move(ip_))
+        , port(port_)
+        , proto(proto_)
+        , auth(auth_) 
     { }
 
-    // 默认构造函数
     NodeInfo() = default;
 };
 
+// 域信息
 struct DomainInfo 
 {
     std::string sip_id;
@@ -38,24 +33,20 @@ struct DomainInfo
     int sip_port { 0 };
     int proto { 0 };
     int auth { 0 };
-    int expires { 0};
+    int expires { 60 };
     bool registered { false };
-    time_t last_reg_time { 0 }; // 添加上次注册时间字段
+    time_t last_reg_time { 0 };
 
-    //std::string last_update_time;  // 添加最后更新时间
-
-    // 从 NodeInfo 构造 DomainInfo
     explicit DomainInfo(const NodeInfo& node)
         : sip_id(node.id)
         , addr_ip(node.ip)
         , sip_port(node.port)
         , proto(node.proto)
         , auth(node.auth)
-        , expires(0)
+        , expires(60)
         , registered(false)
-        , last_reg_time(0)
+        , last_reg_time(0) 
     { }
 
-    // 默认构造函数
     DomainInfo() = default;
 };

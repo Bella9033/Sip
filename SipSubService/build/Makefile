@@ -177,30 +177,6 @@ mnt/hgfs/share/SubServer/SipSubService/src/ev_thread.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/SipSubService.dir/build.make CMakeFiles/SipSubService.dir/mnt/hgfs/share/SubServer/SipSubService/src/ev_thread.cpp.s
 .PHONY : mnt/hgfs/share/SubServer/SipSubService/src/ev_thread.cpp.s
 
-mnt/hgfs/share/SubServer/SipSubService/src/ev_thread_manager.o: mnt/hgfs/share/SubServer/SipSubService/src/ev_thread_manager.cpp.o
-.PHONY : mnt/hgfs/share/SubServer/SipSubService/src/ev_thread_manager.o
-
-# target to build an object file
-mnt/hgfs/share/SubServer/SipSubService/src/ev_thread_manager.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/SipSubService.dir/build.make CMakeFiles/SipSubService.dir/mnt/hgfs/share/SubServer/SipSubService/src/ev_thread_manager.cpp.o
-.PHONY : mnt/hgfs/share/SubServer/SipSubService/src/ev_thread_manager.cpp.o
-
-mnt/hgfs/share/SubServer/SipSubService/src/ev_thread_manager.i: mnt/hgfs/share/SubServer/SipSubService/src/ev_thread_manager.cpp.i
-.PHONY : mnt/hgfs/share/SubServer/SipSubService/src/ev_thread_manager.i
-
-# target to preprocess a source file
-mnt/hgfs/share/SubServer/SipSubService/src/ev_thread_manager.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/SipSubService.dir/build.make CMakeFiles/SipSubService.dir/mnt/hgfs/share/SubServer/SipSubService/src/ev_thread_manager.cpp.i
-.PHONY : mnt/hgfs/share/SubServer/SipSubService/src/ev_thread_manager.cpp.i
-
-mnt/hgfs/share/SubServer/SipSubService/src/ev_thread_manager.s: mnt/hgfs/share/SubServer/SipSubService/src/ev_thread_manager.cpp.s
-.PHONY : mnt/hgfs/share/SubServer/SipSubService/src/ev_thread_manager.s
-
-# target to generate assembly for a file
-mnt/hgfs/share/SubServer/SipSubService/src/ev_thread_manager.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/SipSubService.dir/build.make CMakeFiles/SipSubService.dir/mnt/hgfs/share/SubServer/SipSubService/src/ev_thread_manager.cpp.s
-.PHONY : mnt/hgfs/share/SubServer/SipSubService/src/ev_thread_manager.cpp.s
-
 mnt/hgfs/share/SubServer/SipSubService/src/ev_thread_pool.o: mnt/hgfs/share/SubServer/SipSubService/src/ev_thread_pool.cpp.o
 .PHONY : mnt/hgfs/share/SubServer/SipSubService/src/ev_thread_pool.o
 
@@ -432,9 +408,6 @@ help:
 	@echo "... mnt/hgfs/share/SubServer/SipSubService/src/ev_thread.o"
 	@echo "... mnt/hgfs/share/SubServer/SipSubService/src/ev_thread.i"
 	@echo "... mnt/hgfs/share/SubServer/SipSubService/src/ev_thread.s"
-	@echo "... mnt/hgfs/share/SubServer/SipSubService/src/ev_thread_manager.o"
-	@echo "... mnt/hgfs/share/SubServer/SipSubService/src/ev_thread_manager.i"
-	@echo "... mnt/hgfs/share/SubServer/SipSubService/src/ev_thread_manager.s"
 	@echo "... mnt/hgfs/share/SubServer/SipSubService/src/ev_thread_pool.o"
 	@echo "... mnt/hgfs/share/SubServer/SipSubService/src/ev_thread_pool.i"
 	@echo "... mnt/hgfs/share/SubServer/SipSubService/src/ev_thread_pool.s"

@@ -12,18 +12,17 @@ bool SipLocalConfig::readConf()
     std::string err;
 
     // 读取并校验本地服务配置
-    auto localIpOpt   = conf_reader_.getString("local_server", "local_ip",   &err);
-    auto localPortOpt = conf_reader_.getInt   ("local_server", "local_port", &err);
-    if (!localIpOpt || !localPortOpt) 
+    auto local_ip_opt   = conf_reader_.getString("local_server", "local_ip",   &err);
+    auto local_port_opt = conf_reader_.getInt   ("local_server", "local_port", &err);
+    if (!local_ip_opt || !local_port_opt) 
     {
         LOG(ERROR) << "Failed to load local_server config: " << err;
         return false;
     }
     
     // 保存本地服务器配置
-    local_ip_ = *localIpOpt;
-    // 注意：这里没有设置 local_port_，这可能不是问题，因为它和 sip_port_ 应该是不同的值
-
+    local_ip_ = *local_ip_opt;
+    
     // 读取并校验 SIP 服务配置
     auto sip_id_opt = conf_reader_.getString("sip_server", "sip_id", &err);
     auto sip_ip_opt = conf_reader_.getString("sip_server", "sip_ip", &err);
@@ -35,7 +34,7 @@ bool SipLocalConfig::readConf()
         return false;
     }
     
-    // 修复：将 SIP 服务配置存储到成员变量中 (这是关键修复点)
+    // 将 SIP 服务配置存储到成员变量中
     sip_id_ = *sip_id_opt;
     sip_ip_ = *sip_ip_opt; 
     sip_port_ = *sip_port_opt;
@@ -75,7 +74,7 @@ bool SipLocalConfig::readConf()
         node.port = *port_opt;
         node.proto = *proto_opt;
         node.auth = *auth_opt;
-        node.expires = 3600; // 默认过期时间为3600秒
+        node.expires = 60; // 默认过期时间为60秒
 
 
         LOG(INFO) << fmt::format(

@@ -7,10 +7,7 @@
 
 bool GlobalCtl::init(std::unique_ptr<IConfigProvider> config) 
 {
-    LOG(INFO) << "GlobalCtl instance init...";
-    std::lock_guard<std::mutex> lock(g_init_mutex_);
-    
-    // 保存配置提供者
+    LOG(INFO) << "GlobalCtl instance init..."; 
     g_config_ = std::move(config);
     
     if (!g_config_) 
@@ -39,7 +36,6 @@ bool GlobalCtl::init(std::unique_ptr<IConfigProvider> config)
     
     if (!g_sip_core_) 
     {
-        // 创建具体实现类，但存储为接口类型
         g_sip_core_ = std::make_shared<SipCore>();
     }
     
@@ -51,11 +47,8 @@ bool GlobalCtl::init(std::unique_ptr<IConfigProvider> config)
 void GlobalCtl::buildDomainInfoList()
 {
     LOG(INFO) << "Building DomainInfo list...";
-    std::lock_guard<std::mutex>lock(domain_mutex_);
-    
-    // 通过接口获取NodeInfo列表
+    std::unique_lock<std::shared_mutex> lock(domain_mutex_);  // 写锁
     const auto& nodes = g_config_->getNodeInfoList();
-    
     domain_info_list_.clear();
     domain_info_list_.reserve(nodes.size());
 
@@ -63,42 +56,101 @@ void GlobalCtl::buildDomainInfoList()
     {
         domain_info_list_.emplace_back(node);
     }
-    
     LOG(INFO) << "Built " << domain_info_list_.size() << " domain entries";
 }
 
 bool GlobalCtl::checkIsValid(const std::string& id) const
 {
-    std::lock_guard<std::mutex> lock(domain_mutex_);
+    LOG(INFO) << "Checking if domain is valid: " << id;
+    std::shared_lock<std::shared_mutex> lock(domain_mutex_);  // 读锁
     return std::any_of(
         domain_info_list_.begin(),
         domain_info_list_.end(),
-        [&id](const DomainInfo& domains){
-            return domains.sip_id == id;
+        [&id](const DomainInfo& domain){
+            return domain.sip_id == id && domain.registered;
         }
     );
 }
 
-void GlobalCtl::setRegValue(std::string_view id, 
-    int expires, bool registered, time_t last_reg_time)
+DomainInfo* GlobalCtl::findDomain(std::string_view id)
 {
-    std::lock_guard<std::mutex> lock(domain_mutex_);
-    auto domain = std::find_if(
-        domain_info_list_.begin(), 
+    auto it = std::find_if(
+        domain_info_list_.begin(),
         domain_info_list_.end(),
-        [&id](const DomainInfo& domain) { 
-            return domain.sip_id == id; 
+        [&id](const DomainInfo& domain) {
+            return domain.sip_id == id;
         }
     );
-    
-    if (domain != domain_info_list_.end()) {
-        domain->registered = registered;
-        domain->expires = expires;
-        domain->last_reg_time = last_reg_time;
-        LOG(INFO) << fmt::format("Domain {} updated: expires {}, registered {}, last_reg_time {}", 
-                                id, expires, registered ? "true" : "false", last_reg_time);
-       
-    } else {
-        LOG(WARNING) << fmt::format("Domain {} not found in domain_info_list_", id);
+    return it != domain_info_list_.end() 
+        ? &(*it) 
+        : nullptr; 
+}
+
+void GlobalCtl::setExpires(std::string_view id, int expires_value) 
+{
+    std::unique_lock<std::shared_mutex> lock(domain_mutex_);  // 写锁
+    auto domain = findDomain(id);
+    if (domain) 
+    {
+        domain->expires = expires_value;
+        LOG(INFO) << "Updated expires for domain: " << id 
+            << " to " << expires_value;
+    } 
+    else 
+    {
+        LOG(ERROR) << "Domain not found: " << id;
     }
+}
+
+void GlobalCtl::setRegistered(std::string_view id, bool registered_value) 
+{
+    std::unique_lock<std::shared_mutex> lock(domain_mutex_);  // 写锁
+    auto domain = findDomain(id);
+    if (domain) 
+    {
+        domain->registered = registered_value;
+        LOG(INFO) << "Updated registered status for domain: " << id 
+            << " to " << registered_value;
+    } 
+    else 
+    {
+        LOG(ERROR) << "Domain not found: " << id;
+    }
+}
+
+void GlobalCtl::setLastRegTime(std::string_view id, time_t last_reg_time_value) 
+{
+    std::unique_lock<std::shared_mutex> lock(domain_mutex_);  // 写锁
+    auto domain = findDomain(id);
+    if (domain) 
+    {
+        domain->last_reg_time = last_reg_time_value;
+        LOG(INFO) << "Updated last registration time for domain: " << id << " to " << last_reg_time_value;
+    } 
+    else 
+    {
+        LOG(ERROR) << "Domain not found: " << id;
+    }
+}
+
+// 批量原子更新接口
+void GlobalCtl::updateRegistration(std::string_view id, int expires_new, bool registered_new, time_t last_reg_time_new)
+{
+    std::unique_lock<std::shared_mutex> lock(domain_mutex_);  // 写锁
+    auto domain = findDomain(id);
+    if (domain)
+    {
+        domain->expires = expires_new;
+        domain->registered = registered_new;
+        domain->last_reg_time = last_reg_time_new;
+        LOG(INFO) << "updateRegistration: " << id 
+            << " expires=" << expires_new 
+            << " registered=" << registered_new 
+            << " last_reg_time=" << last_reg_time_new;
+    }
+    else
+    {
+        LOG(ERROR) << "updateRegistration: Domain not found: " << id;
+    }
+    update_counter_++;
 }

@@ -15,13 +15,32 @@ pjsip_module SipCore::recv_mod = {
     nullptr, nullptr, nullptr, nullptr
 };
 
+SipCore::SipCore()
+{
+    caching_pool_ = PjSipUtils::createCachingPool(SIP_STACK_SIZE);
+    if (!caching_pool_) 
+    {
+        LOG(ERROR) << "Failed to create caching pool";
+        throw std::runtime_error("Failed to create caching pool");
+    }
+    endpt_ = nullptr;
+}
+
+SipCore::~SipCore() 
+{
+    LOG(INFO) << "Releasing SipCore...";
+    stop_pool_ = true;
+    
+    // 增加足够的等待时间，确保pollingEventLoop安全退出
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    
+    // 直接使用 PjSipUtils 的清理函数
+    PjSipUtils::cleanupCore(caching_pool_, endpt_);
+}
+
+
 void SipCore::pollingEventLoop(SipTypes::EndpointPtr endpt) 
 {
-    LOG(INFO) << "pollingEventLoop started";
-    
-    // 确保线程已注册到PJSIP
-    PjSipUtils::ThreadRegistrar thread_registrar;
-    
     if (!endpt) 
     {
         LOG(ERROR) << "pollingEventLoop received nullptr endpoint!";
@@ -42,64 +61,10 @@ void SipCore::pollingEventLoop(SipTypes::EndpointPtr endpt)
     LOG(INFO) << "pollingEventLoop exited normally";
 }
 
-pj_bool_t SipCore::onRxRequestRaw(pjsip_rx_data* rdata)
-{
-    if (!rdata) 
-    {
-        LOG(ERROR) << "Received null rdata in onRxRequestRaw";
-        return PJ_FALSE;
-    }
-
-    // 立即克隆数据
-    auto rdata_ptr = PjSipUtils::cloneRxData(rdata);
-    if (!rdata_ptr) 
-    {
-        LOG(ERROR) << "Failed to clone rx_data in onRxRequestRaw";
-        return PJ_FALSE;
-    }
-    return onRxRequest(rdata_ptr);
-}
-
-pj_bool_t SipCore::onRxRequest(SipTypes::RxDataPtr rdata)
-{
-    LOG(INFO) << "onRxRequest called";
-    if (!rdata || !rdata->msg_info.msg) 
-    {
-        LOG(ERROR) << "rdata or msg_info is null";
-        return PJ_FALSE;
-    }
-
-    LOG(INFO) << "onRxRequest: " << pjsip_rx_data_get_info(rdata.get());
-
-    return PJ_SUCCESS;
-}
-
-SipCore::SipCore()
-{
-    caching_pool_ = PjSipUtils::createCachingPool(SIP_STACK_SIZE);
-    if (!caching_pool_) 
-    {
-        LOG(ERROR) << "Failed to create caching pool";
-        throw std::runtime_error("Failed to create caching pool");
-    }
-    endpt_ = nullptr;
-}
-
-SipCore::~SipCore() 
-{
-    LOG(INFO) << "Releasing SipCore...";
-    stop_pool_ = true;
-    
-    // 修复：增加足够的等待时间，确保pollingEventLoop安全退出
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    
-    // 直接使用 PjSipUtils 的清理函数
-    PjSipUtils::cleanupCore(caching_pool_, endpt_);
-}
-
 
 pj_status_t SipCore::initSip(int sip_port) 
 {  
+    LOG(INFO) << "Initializing SipCore...";
     pj_log_set_level(0);
     pj_status_t status;
 
@@ -155,7 +120,7 @@ pj_status_t SipCore::initSip(int sip_port)
     auto endpt_copy = endpt_;
     
     try {
-        // 修复：使用适当超时时间创建线程
+        // 使用适当超时时间创建线程
         auto thread_future = EVThread::createThread(
             [self, endpt_copy]() {
                 try {
@@ -164,7 +129,7 @@ pj_status_t SipCore::initSip(int sip_port)
                     LOG(ERROR) << "Exception in pollingEventLoop: " << e.what();
                 }
             },
-            std::tuple<>(),
+            std::tuple<>{},
             nullptr,
             ThreadPriority::NORMAL,
             std::chrono::milliseconds{30000} 
@@ -173,6 +138,38 @@ pj_status_t SipCore::initSip(int sip_port)
         LOG(ERROR) << "Failed to create polling thread: " << e.what();
         return PJ_EINVAL;
     }
+    
+    return PJ_SUCCESS;
+}
+
+
+pj_bool_t SipCore::onRxRequestRaw(pjsip_rx_data* rdata)
+{
+    if (!rdata)
+    {
+        LOG(ERROR) << "Received null rdata in onRxRequestRaw";
+        return PJ_FALSE;
+    }
+
+    // 立即克隆数据
+    auto rdata_ptr = PjSipUtils::cloneRxData(rdata);
+    if (!rdata_ptr) 
+    {
+        LOG(ERROR) << "Failed to clone rx_data in onRxRequestRaw";
+        return PJ_FALSE;
+    }
+    return onRxRequest(rdata_ptr);
+}
+
+pj_bool_t SipCore::onRxRequest(SipTypes::RxDataPtr rdata)
+{
+    LOG(INFO) << "onRxRequest called";
+    if (!rdata || !rdata->msg_info.msg) 
+    {
+        LOG(ERROR) << "rdata or msg_info is null";
+        return PJ_FALSE;
+    }
+    
     
     return PJ_SUCCESS;
 }

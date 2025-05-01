@@ -9,66 +9,55 @@
 #include <ctime>
 #include <sys/sysinfo.h>
 
-// 初始化静态成员
-std::shared_ptr<SipRegister> SipRegister::instance_ = nullptr;
-std::mutex SipRegister::singleton_mutex_;
-
-// 实现单例模式的getInstance方法
-std::shared_ptr<SipRegister> SipRegister::getInstance()
+std::shared_ptr<SipRegister> SipRegister::getInstance() 
 {
-    std::lock_guard<std::mutex> lock(singleton_mutex_);
-    if (!instance_) {
-        instance_ = std::shared_ptr<SipRegister>(new SipRegister());
-        instance_->sip_reg_ = instance_;
-        LOG(INFO) << "SipRegister singleton instance created";
-    }
-    return instance_;
+    static std::shared_ptr<SipRegister> instance{new SipRegister()};
+    LOG(INFO) << "Getting SipRegister instance";
+    return instance;
 }
 
-// 构造函数中获取IDomainManager引用
-SipRegister::SipRegister()
-    : reg_timer_(std::make_shared<TaskTimer>()),
-      initialized_(false),
-      domain_manager_(GlobalCtl::getInstance()) // 注入依赖
-{ }
+SipRegister::SipRegister() 
+    : reg_timer_(std::make_shared<TaskTimer>())
+    , domain_manager_(GlobalCtl::getInstance())
+{
+
+}
 
 SipRegister::~SipRegister() 
 {
+    LOG(INFO) << "Destroying SipRegister";
     if (reg_timer_) 
-    { 
-        reg_timer_->stop(); 
+    {
+        reg_timer_->stop();
+        LOG(INFO) << "Registration timer stopped";
     }
-    LOG(INFO) << "SipRegister destroyed";
 }
 
 void SipRegister::startRegService() 
 {
+    LOG(INFO) << "Starting registration service";
     if (reg_timer_) 
     {
-        // 确保只初始化一次
-        std::lock_guard<std::mutex> lock(init_mutex_);
-        LOG(INFO) << "Lock acquired for initialization.";
-        if (!initialized_) 
+        if (!reg_timer_->start()) 
         {
-            reg_timer_->start(); 
-            initialized_ = true;
-            LOG(INFO) << "Register timer initialized.";
+            LOG(ERROR) << "Failed to start registration timer";
+            return;
         }
+        auto self = shared_from_this();
+        reg_timer_->addTask([weak_this = std::weak_ptr<SipRegister>(self)]() {
+            if (auto shared_this = weak_this.lock()) {
+                LOG(INFO) << "Executing registration task";
+            }
+        });
+        LOG(INFO) << "Registration timer started successfully";
+    } else {
+        LOG(ERROR) << "Timer not initialized";
     }
 }
 
 pj_status_t SipRegister::runRxTask(SipTypes::RxDataPtr rdata) 
 {
     LOG(INFO) << "runRxTask called";
-    
-    // 确保实例已初始化（即使从其他线程调用）
-    std::lock_guard<std::mutex> lock(init_mutex_);
-    LOG(INFO) << "Lock acquired for runRxTask.";
-    if (!initialized_) 
-    {
-        initialized_ = true;
-    }
-    
     return registerReqMsg(rdata);
 }
 
@@ -80,142 +69,91 @@ pj_status_t SipRegister::registerReqMsg(SipTypes::RxDataPtr rdata)
         LOG(ERROR) << "registerReqMsg: rdata is null";
         return PJ_EINVAL;
     }
-    
-    return handleReg(rdata);
+    return handleRegister(rdata);
 }
 
-pj_status_t SipRegister::handleReg(SipTypes::RxDataPtr rdata)
+pj_status_t SipRegister::handleRegister(SipTypes::RxDataPtr rdata)
 {
-    LOG(INFO) << "Handling register logic";
+    LOG(INFO) << "handleRegister called";
     if (!rdata || !rdata->msg_info.msg) 
     {
-        LOG(ERROR) << "handleReg: rdata is null";
+        LOG(ERROR) << "handleRegister: rdata or message is null";
         return PJ_EINVAL;
     }
 
-    // 添加锁保护共享资源访问
-    std::lock_guard<std::mutex> lock(register_mutex_);
-
-    // 修复：确保线程已注册到PJSIP
     PjSipUtils::ThreadRegistrar thread_registrar;
     
-    std::array<char,1024> buf {};
-    int size { 0 };
     std::string from_id;
-    int status_code { 200 };
-
-    // 使用 get() 获取原始指针
-    auto from_raw = static_cast<pjsip_from_hdr*>(pjsip_msg_find_hdr(
-        rdata->msg_info.msg, 
-        PJSIP_H_FROM, 
-        nullptr));
-
-    if(from_raw == nullptr) 
-    {
-        LOG(ERROR) << "from_raw is nullptr";
-        return -1;
-    }
-    
-    // 添加更严格的指针检查
-    if(from_raw->uri && from_raw->vptr && from_raw->vptr->print_on) 
-    {
-        size = from_raw->vptr->print_on(from_raw, buf.data(), 
-            static_cast<int>(buf.size()));
-    }
-    else
-    {
-        LOG(ERROR) << "Invalid FROM header structure";
-        return -1;
-    }
-    
-    if(size > 0)
-    {
-        std::string temp(buf.data(), size);
-        // 更安全的字符串处理
-        if(temp.size() > 11){
-            // 避免可能的越界
-            size_t len = std::min<size_t>(temp.size() - 11, 20); 
-            from_id = temp.substr(11, len);
-            LOG(INFO) << "from_id: " << from_id;
-        }else{
-            LOG(WARNING) << "FROM header too short: " << temp;
-            return -1;
-        }
-    }else{
-        LOG(ERROR) << "Failed to print FROM header";
-        return -1;
+    try{
+        from_id = parseFromHeader(rdata->msg_info.msg);
+    }catch(const std::exception& e){
+        LOG(ERROR) << "Failed to parse From header: " << e.what();
+        return PJ_EINVAL;
     }
 
-    // 使用接口而不是直接调用GlobalCtl
-    if(!domain_manager_.checkIsValid(from_id))
+    int status_code = static_cast<int>(SipStatusCode::SIP_OK);
+    int expires_value { 0 };
+
+    // checkIsValid改为只判断是否有这个id（注册状态后续要改）
+    // 只要有该域即可（不必已注册）
+    // 域检查使用omain_manager_替代GlobalCtl::getInstance()
+    bool domain_exists = false;
     {
-        status_code = static_cast<int>(StatusCode::SIP_NOT_FOUND);
-    }
-    else
-    {
-        auto expires_raw = static_cast<pjsip_expires_hdr*>(
-            pjsip_msg_find_hdr(rdata->msg_info.msg, PJSIP_H_EXPIRES, nullptr));
-            
-        // 增加空指针检查
-        pj_int32_t expires_value = 3600; // 默认值
-        if (expires_raw) {
-            expires_value = expires_raw->ivalue;
-        }
-        
+        std::shared_lock<std::shared_mutex> lock(domain_manager_.getMutex());  // 读锁
+        auto domain = domain_manager_.findDomain(from_id);
+        domain_exists = (domain != nullptr);
     }
 
-    // 获取endpoint的安全处理
+    if (!domain_exists)
+    {
+        status_code = static_cast<int> (SipStatusCode::SIP_NOT_FOUND);
+        LOG(ERROR) << "Domain not found: " << from_id;
+        return PJ_EINVAL;
+    }
+    else if(auto expires_raw = static_cast<pjsip_expires_hdr*>(
+            pjsip_msg_find_hdr(rdata->msg_info.msg, PJSIP_H_EXPIRES, nullptr)))
+    {
+        expires_value = expires_raw->ivalue;
+        LOG(INFO) << "Expires header: " << expires_value;
+    }
+
+    // SipCore 相关操作仍然使用 GlobalCtl::getInstance()
+    // SipCore 是全局资源，不能在多线程中创建和销毁
+    // getSipCore() 本来就是 GlobalCtl 的特有功能，不属于域管理的职责
+    // 没必要为了统一接口而在 IDomainManager 中添加与域管理无关的方法
     auto endpt = GlobalCtl::getInstance().getSipCore().getEndPoint();
-    if (!endpt) {
+    if (!endpt) 
+    {
         LOG(ERROR) << "Failed to get endpoint";
         return PJ_EINVAL;
     }
-    
-    // 创建响应
+
     pjsip_tx_data* txdata { nullptr };
     auto status = pjsip_endpt_create_response(
         endpt.get(),
         rdata.get(),
         status_code, 
         nullptr, 
-        &txdata);
-        
-    if(status != PJ_SUCCESS || !txdata)
+        &txdata
+    );
+    if (status != PJ_SUCCESS || !txdata) 
     {
-        LOG(ERROR) << "pjsip_endpt_create_response failed, code: " << status;
+        LOG(ERROR) << "Failed to create response: " << status;
         return status;
     }
-
-    // 使用智能指针管理txdata
     auto txdata_guard = SipTypes::makeTxData(txdata);
 
-    // 使用UTC时间而不是本地时间
-    auto now = std::chrono::system_clock::now();
-    auto time_t_now = std::chrono::system_clock::to_time_t(now);
-    
-    // 使用thread-safe的方式处理时间
-    std::array<char, 100> buffer {};
-    struct tm tm_buf;
-    gmtime_r(&time_t_now, &tm_buf); // 使用线程安全版本
-    std::strftime(buffer.data(), buffer.size(), "%Y-%m-%d %H:%M:%S", &tm_buf);
-    std::string time_str(buffer.data());
-    LOG(INFO) << "Current UTC time: " << time_str;
-
-    // 使用栈上缓冲区避免内存泄漏
-    pj_str_t value_time = pj_str(const_cast<char*>(time_str.c_str()));
-    pj_str_t key_time = pj_str(const_cast<char*>("Date"));
-    auto date_header = pjsip_date_hdr_create(rdata->tp_info.pool, &key_time, &value_time);
-    
-    if (date_header) 
+    if(!addDateHeader(txdata->msg, rdata->tp_info.pool))
     {
-        pjsip_msg_add_hdr(txdata->msg, (pjsip_hdr*)date_header);
+        LOG(ERROR) << "Failed to add Date header";
+        return PJ_EINVAL;
     }
 
     pjsip_response_addr res_addr;
     status = pjsip_get_response_addr(txdata->pool, rdata.get(), &res_addr);
     if(status != PJ_SUCCESS)
     {
-        LOG(ERROR) << "pjsip_get_response_addr failed, code: " << status;
+        LOG(ERROR) << "Failed to get response address: " << status;
         return status;
     }
 
@@ -228,13 +166,137 @@ pj_status_t SipRegister::handleReg(SipTypes::RxDataPtr rdata)
     );
     if(status != PJ_SUCCESS)
     {
-        LOG(ERROR) << "pjsip_endpt_send_response failed, code: " << status;
+        LOG(ERROR) << "Failed to send response: " << status;
         return status;
     }
-    if(status_code == 200)
+
+    // 统一原子更新
+    if(expires_value > 0)
     {
-        LOG(INFO) << "DOSO";
+        time_t reg_time = 0;
+        struct sysinfo info;
+        if (sysinfo(&info) == 0){
+            reg_time = info.uptime;
+        }else{
+            reg_time = std::time(nullptr);
+        }
+        domain_manager_.updateRegistration(from_id, expires_value, true, reg_time);
+        LOG(INFO) << "Registration successful for domain: " << from_id;
+        LOG(INFO) << "Registration time: " << reg_time;
+    }else if(expires_value == 0)
+    {
+        domain_manager_.updateRegistration(from_id, 0, false, 0);
+        LOG(INFO) << "Unregistration successful for domain: " << from_id;
     }
-    // txdata_guard会自动释放资源
-    return PJ_SUCCESS;
+
+    return status;
+}
+
+std::string SipRegister::parseFromHeader(pjsip_msg* msg)
+{
+    if (!msg) {
+        LOG(ERROR) << "parseFromHeader: msg is null";
+        throw std::runtime_error("Message is null");
+    }
+
+    // 获取 From 头部
+    auto from_hdr = static_cast<pjsip_from_hdr*>(
+        pjsip_msg_find_hdr(msg, PJSIP_H_FROM, nullptr));
+    
+    if (!from_hdr) {
+        LOG(ERROR) << "parseFromHeader: From header not found";
+        throw std::runtime_error("From header not found");
+    }
+
+    // 检查 URI 是否有效
+    if (!from_hdr->uri) {
+        LOG(ERROR) << "parseFromHeader: From URI is null";
+        throw std::runtime_error("From URI is null");
+    }
+
+    // 创建缓冲区用于打印 URI
+    std::array<char, 1024> buf{};
+    
+    // 获取打印方法
+    auto print_uri = pjsip_uri_print(PJSIP_URI_IN_FROMTO_HDR, 
+                                   from_hdr->uri, 
+                                   buf.data(), 
+                                   buf.size());
+    
+    if (print_uri <= 0) {
+        LOG(ERROR) << "parseFromHeader: Failed to print From URI";
+        throw std::runtime_error("Failed to print From URI");
+    }
+
+    // 将打印结果转换为字符串
+    std::string uri_str(buf.data(), print_uri);
+    
+    // 解析 SIP URI 格式: sip:user@domain
+    size_t sip_prefix = uri_str.find("sip:");
+    if (sip_prefix == std::string::npos) {
+        LOG(ERROR) << "parseFromHeader: Invalid SIP URI format";
+        throw std::runtime_error("Invalid SIP URI format: " + uri_str);
+    }
+
+    // 跳过 "sip:" 前缀
+    size_t start = sip_prefix + 4;
+    
+    // 查找 @ 符号
+    size_t at_pos = uri_str.find('@', start);
+    if (at_pos == std::string::npos) {
+        LOG(ERROR) << "parseFromHeader: Invalid SIP URI format (no @)";
+         // 如果没有 @ 符号，抛出异常
+        throw std::runtime_error("Invalid SIP URI format (no @): " + uri_str);
+    }
+
+    // 提取用户 ID (从 sip: 后面到 @ 之前)
+    std::string user_id = uri_str.substr(start, at_pos - start);
+    
+    if (user_id.empty()) {
+        LOG(ERROR) << "parseFromHeader: Empty user ID in URI";
+         // 如果用户 ID 为空，抛出异常
+        throw std::runtime_error("Empty user ID in URI: " + uri_str);
+    }
+
+    LOG(INFO) << "Parsed From header user ID: " << user_id;
+    return user_id;
+}
+
+
+// 辅助函数：添加日期头部
+bool SipRegister::addDateHeader(pjsip_msg* msg, pj_pool_t* pool) 
+{
+    LOG(INFO) << "Adding Date header";
+    auto now = std::chrono::system_clock::now();
+    auto time_t_now = std::chrono::system_clock::to_time_t(now);
+
+    std::array<char,100> buffer{};
+    struct tm tm_buf;
+
+    if(!gmtime_r(&time_t_now, &tm_buf))
+    {
+        LOG(ERROR) << "Failed to get GMT time";
+        return false;
+    }
+    
+    if(!std::strftime(buffer.data(), buffer.size(), "%Y-%m-%d %H:%M:%S", &tm_buf))
+    {
+        LOG(ERROR) << "Failed to format time";
+        return false;
+    }
+
+    std::string time_str(buffer.data());
+    pj_str_t value_time = pj_str(const_cast<char*>(time_str.c_str()));
+    pj_str_t key_time = pj_str(const_cast<char*>("Date"));
+    
+    auto date_hdr = pjsip_date_hdr_create(pool, &key_time, &value_time);
+    if(!date_hdr)
+    {
+        LOG(ERROR) << "Failed to create Date header";
+        return false;
+    }
+    
+    pjsip_msg_add_hdr(msg, reinterpret_cast<pjsip_hdr*>(date_hdr));
+    LOG(INFO) << "Date header added: " << time_str;
+    return true;
 }

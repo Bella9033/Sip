@@ -2,7 +2,9 @@
 
 #pragma once
 
+#include "common.h"
 #include <string>
+#include <string_view>
 
 struct NodeInfo 
 {
@@ -11,7 +13,7 @@ struct NodeInfo
     int port { 0 };
     int proto { 0 };
     int auth { 0 };
-    int expires { 3600 }; // 默认过期时间为3600秒
+    int expires { 60 }; // 默认过期时间为60秒
 
     // 构造函数，从配置参数构造 NodeInfo
     NodeInfo(std::string id_, 
@@ -32,13 +34,14 @@ struct NodeInfo
     NodeInfo() = default;
 };
 
+// 域信息
 struct DomainInfo 
 {
     std::string sip_id;
     std::string addr_ip;
-    int sip_port;
+    int sip_port { 0 };
     int proto { 0 };
-    int expires { 3600 };
+    int expires { 60 };
     bool registered { false };
 
     // 从 NodeInfo 构造 DomainInfo
@@ -53,6 +56,4 @@ struct DomainInfo
 
     // 默认构造函数
     DomainInfo() = default;
-
-    void setRegistered() { registered = true; }
 };

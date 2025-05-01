@@ -154,12 +154,12 @@ pj_status_t PjSipUtils::initTransports(SipTypes::EndpointPtr endpt, int sip_port
     return initTransports(endpt.get(), sip_port);
 }
 
-// pjsip_utils.cpp 中的线程注册函数部分 - 修复版
+
 // ===== 线程注册函数 =====
 // 增加线程安全相关的改进
 pj_status_t PjSipUtils::registerThread() 
 {
-    // 修复：每个线程需要专有的描述符
+    // 每个线程需要专有的描述符
     static thread_local bool registered = false;
     static thread_local pj_thread_desc desc;
     static thread_local pj_thread_t* thread = nullptr;
@@ -179,15 +179,22 @@ pj_status_t PjSipUtils::registerThread()
     return PJ_SUCCESS;
 }
 
-
 // ===== 线程注册器构造函数 =====
 PjSipUtils::ThreadRegistrar::ThreadRegistrar()
 {
+    static std::mutex init_mutex;
+    std::lock_guard<std::mutex> lock(init_mutex);
+    
     pj_status_t status = registerThread();
-    if (status != PJ_SUCCESS) 
+    if (!pj_thread_is_registered()) 
     {
-        LOG(ERROR) << "Thread registration failed, code: " << status;
-        throw std::runtime_error("Thread registration failed");  // 修复：失败时抛出异常
+        pj_thread_desc desc;
+        pj_thread_t* thread;
+        if (pj_thread_register(nullptr, desc, &thread) != PJ_SUCCESS) 
+        {
+            LOG(ERROR) << "Failed to register thread with PJSIP";
+            throw std::runtime_error("Thread registration failed");
+        }
     }
 }
 

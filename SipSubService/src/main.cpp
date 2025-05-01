@@ -10,7 +10,6 @@
 #include "rtplibraryversion.h"
 #include "rtcpsrpacket.h"
 
-
 #include <memory>
 
 #include "interfaces/iconfig_provider.h"
@@ -29,7 +28,6 @@ int main(int argc, char* argv[])
     srand(time(0));
     SetLogLevel glog(SetLogLevel::LogLevel::INFO);
 
-
     // 创建一个SipLocalConfig实例
     auto config = std::make_unique<SipLocalConfig>();
     
@@ -40,11 +38,17 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    LOG(INFO) << "local_ip is: " << GlobalCtl::getInstance().getConfig().getLocalIp();
+    LOG(INFO) << "local_ip is: " << GCONF(getLocalIp);
 
-    // 修改：使用单例模式获取SipRegister实例
-    auto regc = SipRegister::getInstance();
-    regc->startRegService();
+
+    auto reg = SipRegister::getInstance();
+    if (!reg) 
+    {
+        LOG(ERROR) << "Failed to get SipRegister instance";
+        return -1;
+    }
+    reg->startRegService();
+
 
     while (true)
     {

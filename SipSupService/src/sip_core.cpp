@@ -42,102 +42,6 @@ void SipCore::pollingEventLoop(SipTypes::EndpointPtr endpt)
     LOG(INFO) << "pollingEventLoop exited normally";
 }
 
-pj_bool_t SipCore::onRxRequestRaw(pjsip_rx_data* rdata)
-{
-    if (!rdata) 
-    {
-        LOG(ERROR) << "Received null rdata in onRxRequestRaw";
-        return PJ_FALSE;
-    }
-
-    // 立即克隆数据
-    auto rdata_ptr = PjSipUtils::cloneRxData(rdata);
-    if (!rdata_ptr) 
-    {
-        LOG(ERROR) << "Failed to clone rx_data in onRxRequestRaw";
-        return PJ_FALSE;
-    }
-    return onRxRequest(rdata_ptr);
-}
-
-pj_bool_t SipCore::onRxRequest(SipTypes::RxDataPtr rdata)
-{
-    LOG(INFO) << "onRxRequest called";
-    if (!rdata || !rdata->msg_info.msg) 
-    {
-        LOG(ERROR) << "rdata or msg_info is null";
-        return PJ_FALSE;
-    }
-
-    LOG(INFO) << "onRxRequest: " << pjsip_rx_data_get_info(rdata.get());
-
-    // 创建参数对象
-    auto params = std::make_shared<ThRxParams>();
-    
-    // 这里不需要再次克隆，直接使用传入的智能指针
-    params->rxdata = rdata;
-    
-    // 使用单例模式获取SipRegister实例
-    if (rdata->msg_info.msg->line.req.method.id == PJSIP_REGISTER_METHOD) 
-    { 
-        params->taskbase = SipRegister::getInstance();
-    }
-    else
-    {
-        // 添加对其他方法的处理
-        LOG(WARNING) << "Unknown or unsupported request method ID: " 
-                     << rdata->msg_info.msg->line.req.method.id;
-        return PJ_FALSE;
-    }
-    
-    // 确保参数在线程执行期间有效
-    auto params_copy = params; // 复制shared_ptr，确保引用计数增加
-
-    auto worker = [params_copy]() -> int {
-        // 确保线程注册到PJSIP
-        PjSipUtils::ThreadRegistrar registrar;
-        LOG(INFO) << "Thread started for runRxTask";
-        if(!params_copy || !params_copy->taskbase) 
-        {
-            LOG(ERROR) << "params or taskbase null";
-            return -1;
-        }
-        
-        // 增加错误处理
-        try {
-            params_copy->taskbase->runRxTask(params_copy->rxdata);
-            LOG(INFO) << "runRxTask success in PJSIP_REGISTER_METHOD";
-            return 0;
-        } catch (const std::exception& e) {
-            LOG(ERROR) << "Exception in runRxTask: " << e.what();
-            return -1;
-        }
-    };
-
-    try {
-        // 增加错误处理
-        auto fut = EVThread::createThread(
-            std::move(worker), 
-            std::tuple<>(), 
-            nullptr, 
-            ThreadPriority::NORMAL, 
-            std::chrono::milliseconds{5000} // 超时时间
-        );
-
-        int result = fut.get();
-        if(result != 0) 
-        {
-            LOG(ERROR) << "Thread execution failed with result: " << result;
-            return PJ_FALSE;
-        }
-        return PJ_TRUE; // 成功返回PJ_TRUE而非PJ_SUCCESS
-    } catch (const std::exception& e) {
-        LOG(ERROR) << "Exception in thread creation: " << e.what();
-        return PJ_FALSE;
-    }
-}
-
-
 SipCore::SipCore()
 {
     caching_pool_ = PjSipUtils::createCachingPool(SIP_STACK_SIZE);
@@ -228,7 +132,7 @@ pj_status_t SipCore::initSip(int sip_port)
                     LOG(ERROR) << "Exception in pollingEventLoop: " << e.what();
                 }
             },
-            std::tuple<>(),
+            std::tuple<>{},
             nullptr,
             ThreadPriority::NORMAL,
             std::chrono::milliseconds{30000} 
@@ -240,3 +144,104 @@ pj_status_t SipCore::initSip(int sip_port)
     
     return PJ_SUCCESS;
 }
+
+
+
+pj_bool_t SipCore::onRxRequestRaw(pjsip_rx_data* rdata)
+{
+    if (!rdata) 
+    {
+        LOG(ERROR) << "Received null rdata in onRxRequestRaw";
+        return PJ_FALSE;
+    }
+
+    // 立即克隆数据
+    auto rdata_ptr = PjSipUtils::cloneRxData(rdata);
+    if (!rdata_ptr) 
+    {
+        LOG(ERROR) << "Failed to clone rx_data in onRxRequestRaw";
+        return PJ_FALSE;
+    }
+    return onRxRequest(rdata_ptr);
+}
+
+pj_bool_t SipCore::onRxRequest(SipTypes::RxDataPtr rdata)
+{
+    LOG(INFO) << "onRxRequest called";
+    if (!rdata || !rdata->msg_info.msg) 
+    {
+        LOG(ERROR) << "rdata or msg_info is null";
+        return PJ_FALSE;
+    }
+
+    LOG(INFO) << "onRxRequest: " << pjsip_rx_data_get_info(rdata.get());
+
+    // 创建参数对象
+    auto params = std::make_shared<ThRxParams>();
+    
+    // 这里不需要再次克隆，直接使用传入的智能指针
+    params->rxdata = rdata;
+    
+    // 使用单例模式获取SipRegister实例
+    if (rdata->msg_info.msg->line.req.method.id == PJSIP_REGISTER_METHOD) 
+    { 
+        params->taskbase = SipRegister::getInstance();
+    }
+    else
+    {
+        // 添加对其他方法的处理
+        LOG(WARNING) << "Unknown or unsupported request method ID: " 
+                     << rdata->msg_info.msg->line.req.method.id;
+        return PJ_FALSE;
+    }
+    
+    // 确保参数在线程执行期间有效
+    auto params_copy = params; // 复制shared_ptr，确保引用计数增加
+
+    auto worker = [params_copy]() -> int {
+        // 确保线程注册到PJSIP
+        PjSipUtils::ThreadRegistrar registrar;
+        LOG(INFO) << "Thread started for runRxTask";
+        if(!params_copy || !params_copy->taskbase) 
+        {
+            LOG(ERROR) << "params or taskbase null";
+            return -1;
+        }
+        
+        // 增加错误处理
+        try {
+            params_copy->taskbase->runRxTask(params_copy->rxdata);
+            LOG(INFO) << "runRxTask success in PJSIP_REGISTER_METHOD";
+            return 0;
+        } catch (const std::exception& e) {
+            LOG(ERROR) << "Exception in runRxTask: " << e.what();
+            return -1;
+        }
+    };
+
+    try {
+        
+        // 增加错误处理
+        auto fut = EVThread::createThread(
+            std::move(worker), 
+            std::tuple<>{}, 
+            nullptr, 
+            ThreadPriority::NORMAL, 
+            std::chrono::milliseconds{5000} // 超时时间
+        );
+
+        int result = fut.get();
+        if(result != 0) 
+        {
+            LOG(ERROR) << "Thread execution failed with result: " << result;
+            return PJ_FALSE;
+        }
+        return PJ_TRUE; // 成功返回PJ_TRUE而非PJ_SUCCESS
+    } catch (const std::exception& e) {
+        LOG(ERROR) << "Exception in thread creation: " << e.what();
+        return PJ_FALSE;
+    }
+    return PJ_SUCCESS;
+}
+
+

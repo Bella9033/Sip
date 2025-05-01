@@ -1,47 +1,57 @@
-// task_timer.h
-
+// task_timer.h - 使用EVThread修改版
 #pragma once
 #include "common.h"
-#include "pjsip_utils.h"
-#include "ev_thread.h"
-
 #include <atomic>
 #include <chrono>
 #include <functional>
-#include <future>
+#include <memory>
 #include <mutex>
 #include <thread>
-#include <memory>
+#include <vector>
+#include <condition_variable>
+#include <future>
 
- // 允许使用 weak_from_this()
-class TaskTimer : public std::enable_shared_from_this<TaskTimer>
-{
+class TaskTimer : public std::enable_shared_from_this<TaskTimer> {
 public:
     using Task = std::function<void()>;
-
+    
     TaskTimer();
     ~TaskTimer();
-
-    void start();
+    
+    // 禁用拷贝和移动
+    TaskTimer(const TaskTimer&) = delete;
+    TaskTimer& operator=(const TaskTimer&) = delete;
+    TaskTimer(TaskTimer&&) = delete;
+    TaskTimer& operator=(TaskTimer&&) = delete;
+    
+    // 启动定时器线程
+    bool start();
+    // 安全停止定时器线程
     void stop();
-    void addTask(const Task& task);
+    
+    // 添加任务
+    void addTask(Task task);
+    // 设置时间间隔
     void setInterval(unsigned int ms);
+    
+    // 获取当前状态
+    bool isRunning() const { return running_; }
 
 private:
+    // 定时器线程主循环
     void timerLoop();
-
-    std::thread timer_thread_;
+    
     std::vector<Task> tasks_;
-    bool running_;
-    unsigned int interval_ms_;
-    
-    // 修复：添加互斥锁保护任务列表
-    std::mutex task_mutex_;
-    
-    // 修复：使用条件变量实现更优雅的线程停止
-    std::mutex cv_mutex_;
+    std::mutex task_mutex_;          // 保护任务列表
+    std::mutex thread_mutex_;        // 保护线程状态
     std::condition_variable cv_;
+    std::atomic<bool> running_{false};
+    std::atomic<bool> stop_requested_{false};
+    unsigned int interval_ms_{3000}; // 默认3秒
     
-    // 使用静态原子布尔值作为停止标志
-    static std::atomic<bool> stop_flag_;
+    // 线程ID存储
+    std::shared_ptr<std::atomic<std::thread::id>> timer_thread_id_;
+    
+    // 保存future以便管理线程生命周期
+    std::shared_ptr<std::future<void>> timer_future_;
 };

@@ -3,8 +3,6 @@ file(REMOVE_RECURSE
   "CMakeFiles/SipSubService.dir/mnt/hgfs/share/SubServer/SipSubService/src/conf_reader.cpp.o.d"
   "CMakeFiles/SipSubService.dir/mnt/hgfs/share/SubServer/SipSubService/src/ev_thread.cpp.o"
   "CMakeFiles/SipSubService.dir/mnt/hgfs/share/SubServer/SipSubService/src/ev_thread.cpp.o.d"
-  "CMakeFiles/SipSubService.dir/mnt/hgfs/share/SubServer/SipSubService/src/ev_thread_manager.cpp.o"
-  "CMakeFiles/SipSubService.dir/mnt/hgfs/share/SubServer/SipSubService/src/ev_thread_manager.cpp.o.d"
   "CMakeFiles/SipSubService.dir/mnt/hgfs/share/SubServer/SipSubService/src/ev_thread_pool.cpp.o"
   "CMakeFiles/SipSubService.dir/mnt/hgfs/share/SubServer/SipSubService/src/ev_thread_pool.cpp.o.d"
   "CMakeFiles/SipSubService.dir/mnt/hgfs/share/SubServer/SipSubService/src/global_ctl.cpp.o"

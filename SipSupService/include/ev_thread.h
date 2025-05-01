@@ -1,17 +1,40 @@
-// ev_thread.h - 修复版
-
+// ev_thread.h - 修改版
 #pragma once
 
-#include "ev_thread_manager.h"
+#include <thread>
 #include <future>
+#include <chrono>
 #include <memory>
 #include <atomic>
+#include <functional>
+#include <type_traits>
 #include "common.h"
-#include <utility>
+#include "ev_thread_pool.h" // 引入线程池头文件
 
-// 线程封装类，支持用future异步获取返回值、线程优先级、超时等
+// 前置声明
+class ThreadPool;
+
+// 线程优先级
+enum class ThreadPriority { LOW, NORMAL, HIGH };
+
+// 线程运行状态
+enum class ThreadState { CREATED, RUNNING, COMPLETED, FAILED };
+
+// 线程状态跟踪
+struct ThreadLogs {
+    std::thread::id thread_id;
+    std::chrono::system_clock::time_point start_time;
+    std::chrono::system_clock::time_point end_time;
+    ThreadState thread_state{ThreadState::CREATED};
+    std::string last_error;
+};
+
+// 线程封装类
 class EVThread {
 public:
+    // 获取全局线程池的实例
+    static ThreadPool& getThreadPool();
+    
     // 创建并启动新线程，支持参数包及优先级、超时设置
     template <typename Func, typename... Args>
     static auto createThread(
@@ -24,118 +47,116 @@ public:
     {
         using ReturnType = std::invoke_result_t<Func, Args...>;
         
-        // 直接move func和args进lambda
+        // 创建一个共享的任务对象
         auto task = std::make_shared<std::packaged_task<ReturnType()>>(
-            [func = std::move(func), args = std::move(args)]() mutable {
+            [func = std::forward<Func>(func), args = std::move(args)]() mutable {
                 return std::apply(std::move(func), std::move(args));
             }
         );
+        
+        // 获取future用于返回结果
         std::future<ReturnType> future = task->get_future();
-
-        auto runner = [task, thread_id_out]() mutable {
-            ThreadLogs tlogs;
-            tlogs.start_time = std::chrono::system_clock::now();
-            tlogs.thread_id = std::this_thread::get_id();
-            tlogs.thread_state = ThreadState::RUNNING;
+        
+        // 创建执行任务的lambda
+        auto thread_func = [task, thread_id_out]() {
+            ThreadLogs logs;
+            logs.start_time = std::chrono::system_clock::now();
+            logs.thread_id = std::this_thread::get_id();
+            logs.thread_state = ThreadState::RUNNING;
+            
+            // 如果需要，输出线程ID
             if (thread_id_out) {
                 *thread_id_out = std::this_thread::get_id();
             }
+            
             try {
+                // 执行任务
                 (*task)();
-                tlogs.thread_state = ThreadState::COMPLETED;
+                logs.thread_state = ThreadState::COMPLETED;
             } catch (const std::exception& e) {
-                tlogs.thread_state = ThreadState::FAILED;
-                tlogs.last_error = e.what();
-                LOG(ERROR) << "EVThread failed: " << e.what();
+                logs.thread_state = ThreadState::FAILED;
+                logs.last_error = e.what();
+                LOG(ERROR) << "Thread execution failed: " << e.what();
             } catch (...) {
-                tlogs.thread_state = ThreadState::FAILED;
-                tlogs.last_error = "Unknown exception";
-                LOG(ERROR) << "EVThread failed: unknown exception";
+                logs.thread_state = ThreadState::FAILED;
+                logs.last_error = "Unknown exception";
+                LOG(ERROR) << "Thread execution failed with unknown exception";
             }
-            tlogs.end_time = std::chrono::system_clock::now();
-            EVThreadManager::instance().addThreadLog(tlogs);
+            
+            logs.end_time = std::chrono::system_clock::now();
+            // 存储线程日志
+            storeThreadLog(logs);
         };
-
-        // 修复: 创建线程并使用智能指针管理
-        auto thread_ptr = std::make_shared<std::thread>(runner);
         
-        // 修复: 尝试设置线程优先级，但忽略错误（记录但继续执行）
-        try {
-            setThreadPriority(*thread_ptr, priority);
-        } catch (const std::exception& e) {
-            LOG(WARNING) << "Thread priority setting failed: " << e.what() << " (继续执行)";
+        // 创建新线程并启动
+        // 判断是否使用线程池
+        if (shouldUseThreadPool()) {
+            // 任务提交给线程池处理，优先级基于ThreadPriority
+            int task_priority = getPriorityValue(priority);
+            getThreadPool().submit(task_priority, thread_func);
+        } else {
+            // 直接创建线程
+            std::shared_ptr<std::thread> thread_ptr = std::make_shared<std::thread>(thread_func);
+            
+            // 尝试设置优先级（忽略失败）
+            try {
+                setThreadPriority(*thread_ptr, priority);
+            } catch (const std::exception& e) {
+                LOG(WARNING) << "Failed to set thread priority: " << e.what();
+            }
+            
+            // 如果设置了超时，创建监控线程
+            if (timeout.count() > 0) {
+                std::thread monitor_thread([timeout, thread = thread_ptr]() {
+                    if (joinWithTimeout(*thread, timeout)) {
+                        LOG(INFO) << "Thread completed within timeout";
+                    } else {
+                        LOG(WARNING) << "Thread timed out after " << timeout.count() << "ms";
+                        // 我们不会强制终止线程，只记录超时
+                    }
+                });
+                monitor_thread.detach(); // 监控线程可以分离
+            } else {
+                // 如果没有超时，创建waiter线程等待完成
+                std::thread waiter([thread = thread_ptr]() {
+                    if (thread->joinable()) {
+                        thread->join();
+                        LOG(INFO) << "Thread joined successfully";
+                    }
+                });
+                waiter.detach(); // waiter线程可以分离
+            }
         }
-
-        // 修复: 改进的超时处理
-        if (timeout.count() > 0) {
-            // 创建监控线程来处理超时
-            std::thread([timeout, t = std::move(thread_ptr)]() mutable {
-                if (!t->joinable()) return;
-                
-                // 尝试在超时前等待线程完成
-                auto join_result = joinWithTimeout(*t, timeout);
-                
-                // 如果超时，安全地分离线程
-                if (!join_result && t->joinable()) {
-                    LOG(WARNING) << "Thread join timeout after " << timeout.count() << "ms: detaching";
-                    t->detach();
-                }
-            }).detach();
-        }
-
+        
         return future;
     }
-
-    // 修复: 添加带超时的join方法
-    static bool joinWithTimeout(std::thread& thread, std::chrono::milliseconds timeout) {
-        if (!thread.joinable()) return false;
-        
-        if (timeout.count() <= 0) {
-            thread.join();
-            return true;
-        }
-
-        // 使用C++11的std::condition_variable实现超时等待
-        std::mutex mtx;
-        std::condition_variable cv;
-        bool finished = false;
-        
-        // 创建监控线程
-        std::thread waiter([&thread, &finished, &cv]() {
-            if (thread.joinable()) {
-                thread.join();
-            }
-            finished = true;
-            cv.notify_one();
-        });
-        
-        // 等待完成或超时
-        {
-            std::unique_lock<std::mutex> lock(mtx);
-            if (cv.wait_for(lock, timeout, [&finished]() { return finished; })) {
-                // 线程在超时前完成
-                if (waiter.joinable()) {
-                    waiter.join();
-                }
-                return true;
-            }
-        }
-        
-        // 超时
-        if (waiter.joinable()) {
-            waiter.detach();
-        }
-        return false;
-    }
-
-    // 等待线程结束，支持超时
-    static bool joinThread(std::thread& thread, std::chrono::milliseconds timeout = std::chrono::milliseconds{0});
+    
+    // 带超时的线程等待
+    static bool joinWithTimeout(std::thread& thread, std::chrono::milliseconds timeout);
+    
+    // 安全地分离线程
     static void detachThread(std::thread& thread);
+    
+    // 检查线程是否在运行
     static bool isRunning(const std::thread& thread);
-
-    // 修复: 设置线程优先级（平台相关），增加错误处理
+    
+    // 设置线程优先级
     static bool setThreadPriority(std::thread& thread, ThreadPriority priority);
+    
+    // 线程池配置
+    static void enableThreadPool(bool enable);
+    static bool isThreadPoolEnabled();
 
-    // 查询线程日志
-    static bool getThreadLogs(std::thread::id tid, ThreadLogs& out_log);
+private:
+    // 存储线程日志
+    static void storeThreadLog(const ThreadLogs& logs);
+    
+    // 决定是否应该使用线程池
+    static bool shouldUseThreadPool();
+    
+    // 将ThreadPriority转换为线程池优先级值
+    static int getPriorityValue(ThreadPriority priority);
+    
+    // 控制是否使用线程池
+    static std::atomic<bool> use_thread_pool_;
 };

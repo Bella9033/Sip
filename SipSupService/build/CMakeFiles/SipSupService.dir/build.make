@@ -97,24 +97,10 @@ CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/ev_threa
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/ev_thread.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /mnt/hgfs/share/SupServer/SipSupService/src/ev_thread.cpp -o CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/ev_thread.cpp.s
 
-CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/ev_thread_manager.cpp.o: CMakeFiles/SipSupService.dir/flags.make
-CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/ev_thread_manager.cpp.o: /mnt/hgfs/share/SupServer/SipSupService/src/ev_thread_manager.cpp
-CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/ev_thread_manager.cpp.o: CMakeFiles/SipSupService.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/mnt/hgfs/share/SupServer/SipSupService/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/ev_thread_manager.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/ev_thread_manager.cpp.o -MF CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/ev_thread_manager.cpp.o.d -o CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/ev_thread_manager.cpp.o -c /mnt/hgfs/share/SupServer/SipSupService/src/ev_thread_manager.cpp
-
-CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/ev_thread_manager.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/ev_thread_manager.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /mnt/hgfs/share/SupServer/SipSupService/src/ev_thread_manager.cpp > CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/ev_thread_manager.cpp.i
-
-CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/ev_thread_manager.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/ev_thread_manager.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /mnt/hgfs/share/SupServer/SipSupService/src/ev_thread_manager.cpp -o CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/ev_thread_manager.cpp.s
-
 CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/ev_thread_pool.cpp.o: CMakeFiles/SipSupService.dir/flags.make
 CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/ev_thread_pool.cpp.o: /mnt/hgfs/share/SupServer/SipSupService/src/ev_thread_pool.cpp
 CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/ev_thread_pool.cpp.o: CMakeFiles/SipSupService.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/mnt/hgfs/share/SupServer/SipSupService/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/ev_thread_pool.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/mnt/hgfs/share/SupServer/SipSupService/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/ev_thread_pool.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/ev_thread_pool.cpp.o -MF CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/ev_thread_pool.cpp.o.d -o CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/ev_thread_pool.cpp.o -c /mnt/hgfs/share/SupServer/SipSupService/src/ev_thread_pool.cpp
 
 CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/ev_thread_pool.cpp.i: cmake_force
@@ -128,7 +114,7 @@ CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/ev_threa
 CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/global_ctl.cpp.o: CMakeFiles/SipSupService.dir/flags.make
 CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/global_ctl.cpp.o: /mnt/hgfs/share/SupServer/SipSupService/src/global_ctl.cpp
 CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/global_ctl.cpp.o: CMakeFiles/SipSupService.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/mnt/hgfs/share/SupServer/SipSupService/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/global_ctl.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/mnt/hgfs/share/SupServer/SipSupService/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/global_ctl.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/global_ctl.cpp.o -MF CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/global_ctl.cpp.o.d -o CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/global_ctl.cpp.o -c /mnt/hgfs/share/SupServer/SipSupService/src/global_ctl.cpp
 
 CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/global_ctl.cpp.i: cmake_force
@@ -142,7 +128,7 @@ CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/global_c
 CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/log_level.cpp.o: CMakeFiles/SipSupService.dir/flags.make
 CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/log_level.cpp.o: /mnt/hgfs/share/SupServer/SipSupService/src/log_level.cpp
 CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/log_level.cpp.o: CMakeFiles/SipSupService.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/mnt/hgfs/share/SupServer/SipSupService/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/log_level.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/mnt/hgfs/share/SupServer/SipSupService/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/log_level.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/log_level.cpp.o -MF CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/log_level.cpp.o.d -o CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/log_level.cpp.o -c /mnt/hgfs/share/SupServer/SipSupService/src/log_level.cpp
 
 CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/log_level.cpp.i: cmake_force
@@ -156,7 +142,7 @@ CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/log_leve
 CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/main.cpp.o: CMakeFiles/SipSupService.dir/flags.make
 CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/main.cpp.o: /mnt/hgfs/share/SupServer/SipSupService/src/main.cpp
 CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/main.cpp.o: CMakeFiles/SipSupService.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/mnt/hgfs/share/SupServer/SipSupService/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/main.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/mnt/hgfs/share/SupServer/SipSupService/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/main.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/main.cpp.o -MF CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/main.cpp.o.d -o CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/main.cpp.o -c /mnt/hgfs/share/SupServer/SipSupService/src/main.cpp
 
 CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/main.cpp.i: cmake_force
@@ -170,7 +156,7 @@ CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/main.cpp
 CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/pjsip_utils.cpp.o: CMakeFiles/SipSupService.dir/flags.make
 CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/pjsip_utils.cpp.o: /mnt/hgfs/share/SupServer/SipSupService/src/pjsip_utils.cpp
 CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/pjsip_utils.cpp.o: CMakeFiles/SipSupService.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/mnt/hgfs/share/SupServer/SipSupService/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/pjsip_utils.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/mnt/hgfs/share/SupServer/SipSupService/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/pjsip_utils.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/pjsip_utils.cpp.o -MF CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/pjsip_utils.cpp.o.d -o CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/pjsip_utils.cpp.o -c /mnt/hgfs/share/SupServer/SipSupService/src/pjsip_utils.cpp
 
 CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/pjsip_utils.cpp.i: cmake_force
@@ -184,7 +170,7 @@ CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/pjsip_ut
 CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/sip_core.cpp.o: CMakeFiles/SipSupService.dir/flags.make
 CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/sip_core.cpp.o: /mnt/hgfs/share/SupServer/SipSupService/src/sip_core.cpp
 CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/sip_core.cpp.o: CMakeFiles/SipSupService.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/mnt/hgfs/share/SupServer/SipSupService/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/sip_core.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/mnt/hgfs/share/SupServer/SipSupService/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/sip_core.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/sip_core.cpp.o -MF CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/sip_core.cpp.o.d -o CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/sip_core.cpp.o -c /mnt/hgfs/share/SupServer/SipSupService/src/sip_core.cpp
 
 CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/sip_core.cpp.i: cmake_force
@@ -198,7 +184,7 @@ CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/sip_core
 CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/sip_local_config.cpp.o: CMakeFiles/SipSupService.dir/flags.make
 CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/sip_local_config.cpp.o: /mnt/hgfs/share/SupServer/SipSupService/src/sip_local_config.cpp
 CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/sip_local_config.cpp.o: CMakeFiles/SipSupService.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/mnt/hgfs/share/SupServer/SipSupService/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/sip_local_config.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/mnt/hgfs/share/SupServer/SipSupService/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/sip_local_config.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/sip_local_config.cpp.o -MF CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/sip_local_config.cpp.o.d -o CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/sip_local_config.cpp.o -c /mnt/hgfs/share/SupServer/SipSupService/src/sip_local_config.cpp
 
 CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/sip_local_config.cpp.i: cmake_force
@@ -212,7 +198,7 @@ CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/sip_loca
 CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/sip_register.cpp.o: CMakeFiles/SipSupService.dir/flags.make
 CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/sip_register.cpp.o: /mnt/hgfs/share/SupServer/SipSupService/src/sip_register.cpp
 CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/sip_register.cpp.o: CMakeFiles/SipSupService.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/mnt/hgfs/share/SupServer/SipSupService/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/sip_register.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/mnt/hgfs/share/SupServer/SipSupService/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/sip_register.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/sip_register.cpp.o -MF CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/sip_register.cpp.o.d -o CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/sip_register.cpp.o -c /mnt/hgfs/share/SupServer/SipSupService/src/sip_register.cpp
 
 CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/sip_register.cpp.i: cmake_force
@@ -226,7 +212,7 @@ CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/sip_regi
 CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/task_timer.cpp.o: CMakeFiles/SipSupService.dir/flags.make
 CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/task_timer.cpp.o: /mnt/hgfs/share/SupServer/SipSupService/src/task_timer.cpp
 CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/task_timer.cpp.o: CMakeFiles/SipSupService.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/mnt/hgfs/share/SupServer/SipSupService/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building CXX object CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/task_timer.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/mnt/hgfs/share/SupServer/SipSupService/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/task_timer.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/task_timer.cpp.o -MF CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/task_timer.cpp.o.d -o CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/task_timer.cpp.o -c /mnt/hgfs/share/SupServer/SipSupService/src/task_timer.cpp
 
 CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/task_timer.cpp.i: cmake_force
@@ -241,7 +227,6 @@ CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/task_tim
 SipSupService_OBJECTS = \
 "CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/conf_reader.cpp.o" \
 "CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/ev_thread.cpp.o" \
-"CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/ev_thread_manager.cpp.o" \
 "CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/ev_thread_pool.cpp.o" \
 "CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/global_ctl.cpp.o" \
 "CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/log_level.cpp.o" \
@@ -257,7 +242,6 @@ SipSupService_EXTERNAL_OBJECTS =
 
 SipSupService: CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/conf_reader.cpp.o
 SipSupService: CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/ev_thread.cpp.o
-SipSupService: CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/ev_thread_manager.cpp.o
 SipSupService: CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/ev_thread_pool.cpp.o
 SipSupService: CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/global_ctl.cpp.o
 SipSupService: CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/log_level.cpp.o
@@ -270,7 +254,7 @@ SipSupService: CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupServi
 SipSupService: CMakeFiles/SipSupService.dir/build.make
 SipSupService: /usr/lib/x86_64-linux-gnu/libfmt.so.8.1.1
 SipSupService: CMakeFiles/SipSupService.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/mnt/hgfs/share/SupServer/SipSupService/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Linking CXX executable SipSupService"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/mnt/hgfs/share/SupServer/SipSupService/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Linking CXX executable SipSupService"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/SipSupService.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

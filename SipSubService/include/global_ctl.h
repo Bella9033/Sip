@@ -1,4 +1,4 @@
-//global_ctl.h
+// global_ctl.h
 
 #pragma once
 
@@ -13,49 +13,49 @@
 #include <mutex>
 #include <vector>
 #include <string_view>
+#include <shared_mutex>
+#include <atomic>
 
-// 前向声明
 class SipLocalConfig;
 
-// 全局控制器单例，现代C++智能指针风格
 class GlobalCtl : public IDomainManager
 {
 public:
-    // 单例访问点
     static GlobalCtl& getInstance() 
     { 
         static GlobalCtl instance; 
         return instance; 
     }
 
-    // 初始化方法 - 接收配置提供者实现
     bool init(std::unique_ptr<IConfigProvider> config);
 
-    // 获取配置接口
     const IConfigProvider& getConfig() const { return *g_config_; }
-    
-    // 其他访问器
     const ThreadPool& getThreadPool() const { return *g_thread_pool_; }
     ISipCore& getSipCore() const { return *g_sip_core_; }
 
-    // 实现IDomainManager接口
     void buildDomainInfoList() override;
+
+    std::shared_mutex& getMutex() override { return domain_mutex_; }// 获取互斥锁
+
     std::vector<DomainInfo>& getDomainInfoList() override { return domain_info_list_; }
-    
-    std::mutex reg_mutex_;
-    
+
+   
 private:
     GlobalCtl() = default;
     ~GlobalCtl() = default;
     GlobalCtl(const GlobalCtl&) = delete;
     GlobalCtl& operator=(const GlobalCtl&) = delete;
 
-    std::mutex g_init_mutex_;
-    mutable std::mutex domain_mutex_; // 允许在 const 方法中使用
+    // 使用读写锁替代互斥锁，提高并发性
+    mutable std::shared_mutex domain_mutex_; 
+    // 添加原子操作计数器
+    std::atomic<size_t> update_counter_{0};
 
-    std::unique_ptr<IConfigProvider> g_config_; // 修改为接口类型
+    std::unique_ptr<IConfigProvider> g_config_;
     std::unique_ptr<ThreadPool> g_thread_pool_;
     std::shared_ptr<ISipCore> g_sip_core_;
 
     std::vector<DomainInfo> domain_info_list_;
+    
+
 };

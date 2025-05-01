@@ -7,36 +7,65 @@
 #include <array>
 #include <chrono>
 #include <ctime>
+#include <sys/sysinfo.h>
+#include <exception>
 
-// 初始化静态成员
-std::shared_ptr<SipRegister> SipRegister::instance_ = nullptr;
-std::mutex SipRegister::singleton_mutex_;
-
-// 实现单例模式的getInstance方法
-std::shared_ptr<SipRegister> SipRegister::getInstance()
+std::shared_ptr<SipRegister> SipRegister::getInstance() 
 {
-    std::lock_guard<std::mutex> lock(singleton_mutex_);
-    if (!instance_) {
-        instance_ = std::shared_ptr<SipRegister>(new SipRegister());
-        instance_->sip_reg_ = instance_;
-        LOG(INFO) << "SipRegister singleton instance created";
-    }
-    return instance_;
+    static std::shared_ptr<SipRegister> instance{new SipRegister()};
+    LOG(INFO) << "Getting SipRegister instance";
+    return instance;
 }
 
-// 构造函数中获取IDomainManager引用
-SipRegister::SipRegister()
-    : reg_timer_(std::make_shared<TaskTimer>()),
-      initialized_(false)
-{ }
+SipRegister::SipRegister() 
+    : reg_timer_(std::make_shared<TaskTimer>())
+{
+    if (!reg_timer_) 
+    {
+        LOG(ERROR) << "Failed to create registration timer";
+    }
+    reg_timer_->setInterval(3000); // 设置3秒间隔
+}
 
 SipRegister::~SipRegister() 
 {
+    LOG(INFO) << "Destroying SipRegister";
     if (reg_timer_) 
-    { 
-        reg_timer_->stop(); 
+    {
+        reg_timer_->stop();
+        LOG(INFO) << "Registration timer stopped";
     }
-    LOG(INFO) << "SipRegister destroyed";
+}
+
+
+void SipRegister::startRegService() 
+{
+    LOG(INFO) << "Starting registration service";
+    if (reg_timer_) 
+    {
+        // 添加周期性执行的注册任务
+        auto self = shared_from_this();
+        reg_timer_->addTask([weak_this = std::weak_ptr<SipRegister>(self)]() {
+            if (auto shared_this = weak_this.lock()) {
+                try {
+                    shared_this->registerProc(); // 注册处理函数
+                    LOG(INFO) << "Registration task executed";
+                } catch (const std::exception& e) {
+                    LOG(ERROR) << "Error in registration task: " << e.what();
+                }
+            }
+        });
+
+        // 启动定时器
+        if (!reg_timer_->start()) 
+        {
+            LOG(ERROR) << "Failed to start registration timer";
+            return;
+        }
+        LOG(INFO) << "Registration timer started successfully";
+    } else {
+        LOG(ERROR) << "Timer not initialized";
+    }
 }
 
 static void client_cb(struct pjsip_regc_cbparam *param)
@@ -48,46 +77,13 @@ static void client_cb(struct pjsip_regc_cbparam *param)
         auto* domain = (DomainInfo*)param->token;
         if(domain) 
         {
-            domain->setRegistered(); // 更新注册状态为已注册
+            domain->registered = true; // 设置域为已注册状态
             LOG(INFO) << "domain.registered = true";
             LOG(INFO) << "Registered successfully for domain: " << domain->sip_id;
         }
     }
     // 其他错误码处理可以根据需要补充
     return;
-}
-
-void SipRegister::startRegService() 
-{
-    LOG(INFO) << "registerServiceStart called";
-    // 启动定时器，定时器会在指定时间间隔内调用 registerProc 函数
-    // 用 shared_ptr 管理对象，并用 weak_ptr 安全绑定回调，避免悬垂指针和内存泄漏。
-    std::weak_ptr<SipRegister> self_weak = shared_from_this(); 
-    if (reg_timer_) 
-    {  
-        // 设置定时器到时回调（Lambda捕获this，调用成员函数）
-        reg_timer_->addTask([self_weak]() { 
-            // 尝试获取当前对象的强引用
-            // 如果对象仍然存在，则调用 registerProc
-            if (auto ptr = self_weak.lock()) 
-            { 
-                LOG(INFO) << "Register timer triggered.";
-                ptr->registerProc(); // 使用获取的强引用调用方法
-            } else 
-            {
-                LOG(ERROR) << "Failed to lock weak pointer, object may be destroyed.";
-            }
-        });
-        // 确保只初始化一次
-        std::lock_guard<std::mutex> lock(init_mutex_);
-        LOG(INFO) << "Lock acquired for initialization.";
-        if (!initialized_) 
-        {
-            reg_timer_->start(); 
-            initialized_ = true;
-            LOG(INFO) << "Register timer initialized.";
-        }
-    }
 }
 
 
@@ -111,12 +107,12 @@ void SipRegister::registerProc()
             if (gbRegister(domain) != PJ_SUCCESS) 
             {
                 LOG(ERROR) << "gbRegister failed for domain: " << domain.sip_id;
-            } 
+            }
         }
     }
 }
 
-// 其余函数保持不变...
+
 // 发起SIP REGISTER请求，注册指定下级域
 // 注册请求的来源信息正确反映了本地节点信息
 // 目标信息指向要注册的下级域

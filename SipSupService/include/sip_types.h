@@ -6,7 +6,7 @@
 #include "common.h" 
 
 // SIP数据类型的智能指针封装
-namespace PjSipUtils {
+namespace SipTypes {
     // 定义智能指针类型及其删除器
     using TxDataPtr = std::shared_ptr<pjsip_tx_data>;
     using RxDataPtr = std::shared_ptr<pjsip_rx_data>;

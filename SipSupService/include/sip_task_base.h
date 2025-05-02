@@ -7,12 +7,12 @@
 class SipTaskBase {
 public:
     virtual ~SipTaskBase() = default;
-    virtual pj_status_t runRxTask(PjSipUtils::RxDataPtr rdata) = 0;
+    virtual pj_status_t runRxTask(SipTypes::RxDataPtr rdata) = 0;
 };
 
 // 注册任务基类
 class SipRegTaskBase : public SipTaskBase {
 public:
     virtual ~SipRegTaskBase() = default;
-    virtual pj_status_t registerReqMsg(PjSipUtils::RxDataPtr rdata) = 0;
+    virtual pj_status_t registerReqMsg(SipTypes::RxDataPtr rdata) = 0;
 };

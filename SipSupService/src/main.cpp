@@ -10,46 +10,49 @@
 #include "rtplibraryversion.h"
 #include "rtcpsrpacket.h"
 
-#include "common.h"
-#include "global_ctl.h"
-#include "sip_local_config.h"
-#include "sip_register.h"
-#include <chrono>
-#include <thread>
+#include <memory>
 
-#include "common.h"
-#include "global_ctl.h"
-#include "sip_local_config.h"
-#include "sip_register.h"
-#include <chrono>
-#include <thread>
+#include "interfaces/iconfig_provider.h"
+#include "interfaces/idomain_manager.h"
 
-int main(int argc, char* argv[]) {
+
+#include "global_ctl.h"        // 依赖于 SipLocalConfig 的定义
+#include "sip_local_config.h"  // 必须在使用 SipLocalConfig 之前包含
+#include "sip_register.h"  // SipRegister 依赖于 SipLocalConfig
+#include "common.h"
+
+
+int main(int argc, char* argv[])
+{
+
     srand(time(0));
     SetLogLevel glog(SetLogLevel::LogLevel::INFO);
 
-    // 初始化全局控制器
+    // 创建一个SipLocalConfig实例
     auto config = std::make_unique<SipLocalConfig>();
-    if (!GlobalCtl::getInstance().init(std::move(config))) {
+    
+    // 初始化全局控制器
+    if (!GlobalCtl::getInstance().init(std::move(config))) 
+    {
         LOG(ERROR) << "Failed to initialize GlobalCtl";
         return -1;
     }
 
     LOG(INFO) << "local_ip is: " << GCONF(getLocalIp);
 
-    // 使用工厂方法创建SipRegister实例
-    auto reg = SipRegister::create(GlobalCtl::getInstance());
-    if (!reg) {
-        LOG(ERROR) << "Failed to create SipRegister instance";
+
+    auto reg = std::make_shared<SipRegister>(GlobalCtl::getInstance());
+    if (!reg) 
+    {
+        LOG(ERROR) << "Failed to get SipRegister instance";
         return -1;
     }
-
     reg->startRegService();
 
-    // 主循环
-    while (true) {
+
+    while (true)
+    {
         std::this_thread::sleep_for(std::chrono::seconds(30));
     }
-    
     return 0;
 }

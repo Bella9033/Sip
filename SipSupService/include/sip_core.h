@@ -1,45 +1,55 @@
+// sip_core.h
+// 调用 PjSipUtils 提供的工具函数，并保留业务事件循环与请求分发逻辑。
+
 #pragma once
 
-#include "common.h"
-#include "interfaces/isip_core.h"
-#include "interfaces/isip_register.h"
-#include "pjsip_utils.h"
 #include <atomic>
 #include <memory>
 
-// 定义线程参数结构
-struct ThRxParams {
-    std::shared_ptr<ISipRegister> taskbase;
-    SipTypes::RxDataPtr rxdata;
-};
+#include "common.h"
+#include "pjsip_utils.h"
+#include "ev_thread.h"
 
-class SipCore : public ISipCore,
-                public std::enable_shared_from_this<SipCore> {
+#include "interfaces/isip_core.h"
+#include "interfaces/idomain_manager.h"
+
+#include "thread_params.h" // 线程参数类
+
+// 前向声明
+class SipRegTaskBase;
+class SipRegister;
+class IDomainManager;
+class GlobalCtl;
+
+// 实现ISipCore接口
+class SipCore : public ISipCore, 
+                public std::enable_shared_from_this<SipCore>
+{
 public:
-    static std::shared_ptr<SipCore> create();
-    
-    explicit SipCore();
-    virtual ~SipCore();
+    SipCore();
+    ~SipCore();
 
-    // 删除拷贝和移动
-    SipCore(const SipCore&) = delete;
-    SipCore& operator=(const SipCore&) = delete;
-    SipCore(SipCore&&) = delete;
-    SipCore& operator=(SipCore&&) = delete;
-
+    // 实现ISipCore接口
     pj_status_t initSip(int sip_port) override;
     SipTypes::EndpointPtr getEndPoint() const override { return endpt_; }
-
-private:
+    
     void pollingEventLoop(SipTypes::EndpointPtr endpt);
+
+    // 原始指针版本的回调（供PJSIP使用）
     static pj_bool_t onRxRequestRaw(pjsip_rx_data* rdata);
+    
+    // 智能指针版本的回调
     static pj_bool_t onRxRequest(SipTypes::RxDataPtr rdata);
 
-private:
     static std::atomic<bool> stop_pool_;
     static pjsip_module recv_mod;
+
     
+private:
+
     SipTypes::CachingPoolPtr caching_pool_;
     SipTypes::EndpointPtr endpt_;
     SipTypes::PoolPtr pool_;
+
+
 };

@@ -384,42 +384,99 @@ CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/ev_threa
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjlib-util/cli_console.h \
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjlib-util/cli_imp.h \
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjlib-util/cli_telnet.h \
- /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjlib.h \
- /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/addr_resolv.h \
- /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/argparse.h \
- /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/ctype.h \
- /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/compat/ctype.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/alaw_ulaw.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/types.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/config.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/avi_stream.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/port.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/clock.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/event.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/audiodev.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia-audiodev/config.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia-audiodev/errno.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/format.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/frame.h \
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/string.h \
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/compat/string.h \
- /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/array.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/rtcp_fb.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/rtcp.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/rtcp_xr.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/math.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/compat/high_precision.h \
+ /usr/include/c++/11/math.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/rtp.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/sdp.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/signatures.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/videodev.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia-videodev/config.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia-videodev/errno.h \
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/assert.h \
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/compat/assert.h \
  /usr/include/assert.h \
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/log.h \
- /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/atomic_queue.h \
- /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/except.h \
- /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/compat/setjmp.h \
- /usr/include/setjmp.h \
- /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/fifobuf.h \
- /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/file_access.h \
- /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/file_io.h \
- /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/guid.h \
- /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/hash.h \
- /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/ip_helper.h \
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/lock.h \
- /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/math.h \
- /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/compat/high_precision.h \
- /usr/include/c++/11/math.h \
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/os.h \
- /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/pool_buf.h \
- /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/rand.h \
- /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/rbtree.h \
- /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/sock_qos.h \
- /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/sock_select.h \
- /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/ssl_sock.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/bidirectional.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/circbuf.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/codec.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/conference.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/converter.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/delaybuf.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/echo.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/echo_port.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/endpoint.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/transport.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/errno.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia-audiodev/audiodev.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/g711.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia-codec/types.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia-codec/config.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/jbuf.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/master_port.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/mem_port.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/null_port.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/plc.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/resample.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/sdp_neg.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/silencedet.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/sound.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/sound_port.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/splitcomb.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/stereo.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/stream.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/vid_codec.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/stream_common.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/tonegen.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/transport_adapter_sample.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/transport_ice.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjnath/ice_strans.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjnath/ice_session.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjnath/types.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjnath/config.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjnath/stun_session.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjnath/stun_msg.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjnath/stun_auth.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjnath/stun_config.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjnath/stun_transaction.h \
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/timer.h \
- /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/unicode.h \
- /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/unittest.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjnath/errno.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjnath/stun_sock.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/sock_qos.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjnath/turn_sock.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjnath/turn_session.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/ssl_sock.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/transport_loop.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/transport_srtp.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/transport_udp.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/vid_conf.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/vid_port.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia-videodev/videodev.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/vid_stream.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/wav_playlist.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/wav_port.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/wave.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/wsola.h \
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjsip.h \
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjsip/sip_types.h \
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjsip/sip_config.h \
@@ -448,14 +505,32 @@ CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/ev_threa
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjsip/sip_dialog.h \
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjsip_ua.h \
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjsip-ua/sip_inv.h \
- /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/sdp_neg.h \
- /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/sdp.h \
- /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/types.h \
- /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjmedia/config.h \
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjsip-ua/sip_regc.h \
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjsip-ua/sip_replaces.h \
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjsip-ua/sip_xfer.h \
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjsip-simple/evsub.h \
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjsip-simple/types.h \
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjsip-ua/sip_100rel.h \
- /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjsip-ua/sip_timer.h
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjsip-ua/sip_timer.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pjlib.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/addr_resolv.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/argparse.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/ctype.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/compat/ctype.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/array.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/atomic_queue.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/except.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/compat/setjmp.h \
+ /usr/include/setjmp.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/fifobuf.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/file_access.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/file_io.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/guid.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/hash.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/ip_helper.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/pool_buf.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/rand.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/rbtree.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/sock_select.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/unicode.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip/pj/unittest.h

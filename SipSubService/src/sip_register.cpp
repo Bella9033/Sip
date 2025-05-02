@@ -24,6 +24,7 @@ SipRegister::SipRegister(IDomainManager& domain_manager)
     , domain_manager_(domain_manager)
 {
     reg_timer_->setInterval(3000);
+    reg_timer_->start();
 }
 
 SipRegister::~SipRegister()
@@ -50,15 +51,10 @@ void SipRegister::startRegService()
                     LOG(INFO) << "Registration task executed";
                 } catch (const std::exception& e) {
                     LOG(ERROR) << "Error in registration task: " << e.what();
+                    throw;
                 }
             }
         });
-
-        if (!reg_timer_->start())
-        {
-            LOG(ERROR) << "Failed to start registration timer";
-            return;
-        }
         LOG(INFO) << "Registration timer started successfully";
     }
     else
@@ -89,7 +85,7 @@ void SipRegister::registerProc()
     PjSipUtils::ThreadRegistrar thread_registrar;
     std::lock_guard<std::mutex> lock(register_mutex_);
     auto& domains = GlobalCtl::getInstance().getDomainInfoList();
-    LOG(INFO) << "UpNodeInfo domains size: " << domains.size();
+    LOG(INFO) << "DomainInfoList size: " << domains.size();
     if (domains.empty())
     {
         LOG(WARNING) << "No domains to register. Check configuration.";

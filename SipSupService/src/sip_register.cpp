@@ -30,7 +30,8 @@ SipRegister::SipRegister(IDomainManager& domain_manager)
     : reg_timer_(std::make_shared<TaskTimer>())
     , domain_manager_(domain_manager)
 {
-    reg_timer_->setInterval(3000); // 设置3秒间隔
+    reg_timer_->setInterval(10000); // 设置10秒间隔
+    reg_timer_->start();
 }
 
 SipRegister::~SipRegister() 
@@ -46,22 +47,59 @@ SipRegister::~SipRegister()
 void SipRegister::startRegService() 
 {
     LOG(INFO) << "Starting registration service";
-    if (reg_timer_) 
+    if(reg_timer_)
     {
-        if (!reg_timer_->start()) 
-        {
-            LOG(ERROR) << "Failed to start registration timer";
-            return;
-        }
         auto self = shared_from_this();
-        reg_timer_->addTask([weak_this = std::weak_ptr<SipRegister>(self)]() {
-            if (auto shared_this = weak_this.lock()) {
-                LOG(INFO) << "Executing registration task";
+        reg_timer_->addTask([weak_this = std::weak_ptr<SipRegister>(self)](){
+            if(auto shared_this = weak_this.lock())
+            {
+                try{
+                    shared_this->checkRegisterProc();
+                    LOG(INFO) << "checkRegisterProc task executed";
+                } catch (const std::exception& e) {
+                    LOG(ERROR) << "Error in registration task: " << e.what();
+                    throw;
+                }
             }
         });
         LOG(INFO) << "Registration timer started successfully";
     } else {
         LOG(ERROR) << "Timer not initialized";
+    }
+}
+
+// 定期的注册检查程序，比较当前时间和上次注册时间
+void SipRegister::checkRegisterProc()
+{
+    LOG(INFO) << "checkRegisterProc called";
+
+    PjSipUtils::ThreadRegistrar thread_registrar;
+    std::lock_guard<std::mutex> lock(register_mutex_);
+
+    time_t reg_time = 0;
+    struct sysinfo info;
+    if (sysinfo(&info) == 0){
+        reg_time = info.uptime;
+        LOG(INFO) << "System uptime: " << info.uptime << " seconds";
+    }else{
+        reg_time = std::time(nullptr);
+        LOG(ERROR) << "Failed to get system uptime, using current time: " << reg_time;
+    }
+
+
+    auto& domains = GlobalCtl::getInstance().getDomainInfoList();
+    LOG(INFO) << "DomainInfoList size: " << domains.size();
+    for (auto& domain : domains)
+    {
+        if (domain.registered)
+        {
+            LOG(INFO) << "reg_time: " << reg_time << ", last_reg_time: " << domain.last_reg_time;
+            if(reg_time - domain.last_reg_time >= domain.expires)
+            {
+                domain.registered = false;
+                LOG(INFO) << "Registration has expired.";
+            }
+        }
     }
 }
 
@@ -186,16 +224,19 @@ pj_status_t SipRegister::handleRegister(SipTypes::RxDataPtr rdata)
     }
 
     {
-        std::unique_lock<std::shared_mutex> lock(domain_manager_.getMutex());  // 独占锁
-        // 统一原子更新
+        std::unique_lock<std::shared_mutex> lock(domain_manager_.getMutex()); 
         if(expires_value > 0)
         {
             time_t reg_time = 0;
+            // 获取系统运行时间
+            // 这里使用 sysinfo 来获取系统运行时间
             struct sysinfo info;
             if (sysinfo(&info) == 0){
                 reg_time = info.uptime;
+                LOG(INFO) << "System uptime: " << info.uptime << " seconds";
             }else{
                 reg_time = std::time(nullptr);
+                LOG(ERROR) << "Failed to get system uptime, using current time: " << reg_time;
             }
             domain_manager_.updateRegistration(from_id, expires_value, true, reg_time);
             LOG(INFO) << "Registration successful for domain: " << from_id;
@@ -234,9 +275,11 @@ std::string SipRegister::formatSIPDate(const std::tm& tm_utc)
 {
     char buf[128];
     // RFC 3261规范的格式：Fri, 02 May 2025 02:42:16 GMT
-    if (!std::strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S GMT", &tm_utc)) {
+    if (!std::strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S GMT", &tm_utc)) 
+    {
         throw std::runtime_error("Failed to format UTC time");
     }
+    LOG(INFO) << "Formatted SIP Date: " << buf;
     return std::string(buf);
 }
 

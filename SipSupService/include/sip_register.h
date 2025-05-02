@@ -5,6 +5,7 @@
 #include "task_timer.h"
 #include "ev_thread.h"
 #include "sip_task_base.h"
+#include  "task_timer.h"
 
 #include "interfaces/isip_register.h"
 #include "interfaces/idomain_manager.h"
@@ -21,7 +22,7 @@ class SipRegister : public SipRegTaskBase,
                     public std::enable_shared_from_this<SipRegister>
 {
 public:
-    explicit SipRegister(IDomainManager& domain_manager); // <-- 必须有
+    explicit SipRegister(IDomainManager& domain_manager);
     ~SipRegister() override;
 
     // 单例工厂
@@ -33,24 +34,24 @@ public:
     pj_status_t registerReqMsg(SipTypes::RxDataPtr rdata) override;
     
 private:   
+    // 处理注册请求
     pj_status_t handleRegister(SipTypes::RxDataPtr rdata);
-    
+    void checkRegisterProc();
+
     std::string parseFromHeader(pjsip_msg* msg);
-    // 用于SIP Date header的时间格式化
     static std::string formatSIPDate(const std::tm& tm_utc);
-    // 获取当前UTC时间
     static std::tm getCurrentUTC();
-    // 添加SIP Date header
     bool addDateHeader(pjsip_msg* msg, pj_pool_t* pool);
 
     void updateRegistrationStatus(const std::string& from_id, pj_int32_t expires_value);
 
 private:   
     std::shared_ptr<TaskTimer> reg_timer_;
+
     std::mutex register_mutex_;
+
     IDomainManager& domain_manager_; 
 
-    // 单例相关
     static std::shared_ptr<SipRegister> instance_;
     static std::mutex instance_mutex_;
 };

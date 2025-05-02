@@ -69,6 +69,7 @@ private:
     std::unique_ptr<ThreadPool> g_thread_pool_;
     std::shared_ptr<ISipCore> g_sip_core_;
 
+    // 域信息列表，所有操作用 domain_mutex_保护（保持不变）
     std::vector<DomainInfo> domain_info_list_;
 
 };

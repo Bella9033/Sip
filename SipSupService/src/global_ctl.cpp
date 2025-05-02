@@ -140,11 +140,12 @@ void GlobalCtl::setLastRegTime(std::string_view id, time_t last_reg_time_value)
 // 批量原子更新接口
 void GlobalCtl::updateRegistration(std::string_view id, int expires_new, bool registered_new, time_t last_reg_time_new)
 {
+    // 使用写锁保护注册信息映射表
+    std::unique_lock<std::shared_mutex> lock(register_mutex_);
+    
     auto domain = findDomain(id);
     if (domain)
     {
-        // 使用写锁保护注册信息映射表
-        std::unique_lock<std::shared_mutex> lock(register_mutex_);
         domain->expires = expires_new;
         domain->registered = registered_new;
         domain->last_reg_time = last_reg_time_new;

@@ -9,6 +9,22 @@
 #include <ctime>
 #include <sys/sysinfo.h>
 
+#include <chrono>
+#include <iomanip>
+#include <sstream>
+
+std::shared_ptr<SipRegister> SipRegister::instance_ = nullptr;
+std::mutex SipRegister::instance_mutex_;
+
+std::shared_ptr<SipRegister> SipRegister::getInstance(IDomainManager& domain_manager) 
+{
+    std::lock_guard<std::mutex> lock(instance_mutex_);
+    if (!instance_) 
+    {
+        instance_ = std::shared_ptr<SipRegister>(new SipRegister(domain_manager));
+    }
+    return instance_;
+}
 
 SipRegister::SipRegister(IDomainManager& domain_manager) 
     : reg_timer_(std::make_shared<TaskTimer>())
@@ -169,27 +185,41 @@ pj_status_t SipRegister::handleRegister(SipTypes::RxDataPtr rdata)
         return status;
     }
 
-    // 统一原子更新
-    if(expires_value > 0)
     {
-        time_t reg_time = 0;
-        struct sysinfo info;
-        if (sysinfo(&info) == 0){
-            reg_time = info.uptime;
-        }else{
-            reg_time = std::time(nullptr);
+        std::unique_lock<std::shared_mutex> lock(domain_manager_.getMutex());  // 独占锁
+        // 统一原子更新
+        if(expires_value > 0)
+        {
+            time_t reg_time = 0;
+            struct sysinfo info;
+            if (sysinfo(&info) == 0){
+                reg_time = info.uptime;
+            }else{
+                reg_time = std::time(nullptr);
+            }
+            domain_manager_.updateRegistration(from_id, expires_value, true, reg_time);
+            LOG(INFO) << "Registration successful for domain: " << from_id;
+            LOG(INFO) << "Registration time: " << reg_time;
+        }else if(expires_value == 0)
+        {
+            domain_manager_.updateRegistration(from_id, 0, false, 0);
+            LOG(INFO) << "Unregistration successful for domain: " << from_id;
         }
-        domain_manager_.updateRegistration(from_id, expires_value, true, reg_time);
-        LOG(INFO) << "Registration successful for domain: " << from_id;
-        LOG(INFO) << "Registration time: " << reg_time;
-    }else if(expires_value == 0)
-    {
-        domain_manager_.updateRegistration(from_id, 0, false, 0);
-        LOG(INFO) << "Unregistration successful for domain: " << from_id;
     }
-
     return status;
 }
+
+std::string SipRegister::getCurrentUTCTime() 
+{
+    auto now = std::chrono::system_clock::now();
+    std::time_t now_c = std::chrono::system_clock::to_time_t(now);
+    std::tm tm_utc = *std::gmtime(&now_c);
+    std::ostringstream oss;
+    // SIP协议Date头推荐格式
+    oss << std::put_time(&tm_utc, "%a, %d %b %Y %H:%M:%S GMT");
+    return oss.str();
+}
+
 
 std::string SipRegister::parseFromHeader(pjsip_msg* msg)
 {
@@ -267,35 +297,30 @@ bool SipRegister::addDateHeader(pjsip_msg* msg, pj_pool_t* pool)
 {
     LOG(INFO) << "Adding Date header";
     auto now = std::chrono::system_clock::now();
-    auto time_t_now = std::chrono::system_clock::to_time_t(now);
-
-    std::array<char,100> buffer{};
-    struct tm tm_buf;
-
-    if(!gmtime_r(&time_t_now, &tm_buf))
-    {
+    std::time_t t_now = std::chrono::system_clock::to_time_t(now);
+    struct tm tm_utc;
+    if (!gmtime_r(&t_now, &tm_utc)) {
         LOG(ERROR) << "Failed to get GMT time";
         return false;
     }
-    
-    if(!std::strftime(buffer.data(), buffer.size(), "%Y-%m-%d %H:%M:%S", &tm_buf))
-    {
-        LOG(ERROR) << "Failed to format time";
+
+    // 标准SIP格式：Fri, 02 May 2025 02:42:16 GMT
+    char buf[128];
+    if (!std::strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S GMT", &tm_utc)) {
+        LOG(ERROR) << "Failed to format UTC time";
         return false;
     }
 
-    std::string time_str(buffer.data());
-    pj_str_t value_time = pj_str(const_cast<char*>(time_str.c_str()));
+    pj_str_t value_time = pj_str(buf);
     pj_str_t key_time = pj_str(const_cast<char*>("Date"));
-    
+
     auto date_hdr = pjsip_date_hdr_create(pool, &key_time, &value_time);
     if(!date_hdr)
     {
         LOG(ERROR) << "Failed to create Date header";
         return false;
     }
-    
     pjsip_msg_add_hdr(msg, reinterpret_cast<pjsip_hdr*>(date_hdr));
-    LOG(INFO) << "Date header added: " << time_str;
+    LOG(INFO) << "Date header added: " << buf;
     return true;
 }

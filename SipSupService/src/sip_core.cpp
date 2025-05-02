@@ -188,9 +188,10 @@ pj_bool_t SipCore::onRxRequest(SipTypes::RxDataPtr rdata)
     // 这里不需要再次克隆，直接使用传入的智能指针
     params->rxdata = rdata;
     
+    // 由工厂/单例获取注册器
     if (rdata->msg_info.msg->line.req.method.id == PJSIP_REGISTER_METHOD) 
     { 
-        params->taskbase = std::make_shared<SipRegister>(GlobalCtl::getInstance());
+        params->taskbase = SipRegister::getInstance(GlobalCtl::getInstance());
     }
     else
     {

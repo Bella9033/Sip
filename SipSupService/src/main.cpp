@@ -1,3 +1,5 @@
+// main.cpp
+
 // RTP相关头文件
 #include "rtpsession.h"
 #include "rtpsourcedata.h"
@@ -24,7 +26,6 @@
 
 int main(int argc, char* argv[])
 {
-
     srand(time(0));
     SetLogLevel glog(SetLogLevel::LogLevel::INFO);
 
@@ -40,15 +41,14 @@ int main(int argc, char* argv[])
 
     LOG(INFO) << "local_ip is: " << GCONF(getLocalIp);
 
-
-    auto reg = std::make_shared<SipRegister>(GlobalCtl::getInstance());
+    // 使用工厂方法获取注册器单例
+    auto reg = SipRegister::getInstance(GlobalCtl::getInstance());
     if (!reg) 
     {
         LOG(ERROR) << "Failed to get SipRegister instance";
         return -1;
     }
     reg->startRegService();
-
 
     while (true)
     {

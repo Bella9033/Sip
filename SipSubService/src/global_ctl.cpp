@@ -51,7 +51,6 @@ void GlobalCtl::buildDomainInfoList()
     const auto& nodes = g_config_->getNodeInfoList();
     domain_info_list_.clear();
     domain_info_list_.reserve(nodes.size());
-
     for(const auto& node : nodes)
     {
         domain_info_list_.emplace_back(node);

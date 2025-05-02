@@ -6,6 +6,11 @@
 #include "common.h"
 #include "sip_types.h"
 
+// 不要用智能指针管理 pjsip_tx_data、pjsip_rx_data 等 PJSIP 资源。
+// PJSIP 里的许多对象（如 endpoint、pool、txdata）必须保证销毁前没有其他线程再用，否则会因锁对象提前释放或未初始化导致崩溃。
+// 你在 SIP 注册/响应流程每次都用智能指针包裹 endpoint/txdata/pool，
+// 但这些对象的引用计数失效时就会自动析构，可能被早于底层线程清理，造成互斥锁失效。
+
 namespace PjSipUtils {
     // ===== 资源创建函数 =====
     // 修改：从SipTypes移动所有资源创建函数到这里

@@ -34,10 +34,16 @@ public:
     
 private:   
     pj_status_t handleRegister(SipTypes::RxDataPtr rdata);
+    
     std::string parseFromHeader(pjsip_msg* msg);
+    // 用于SIP Date header的时间格式化
+    static std::string formatSIPDate(const std::tm& tm_utc);
+    // 获取当前UTC时间
+    static std::tm getCurrentUTC();
+    // 添加SIP Date header
     bool addDateHeader(pjsip_msg* msg, pj_pool_t* pool);
+
     void updateRegistrationStatus(const std::string& from_id, pj_int32_t expires_value);
-    std::string getCurrentUTCTime(); // <-- 必须有
 
 private:   
     std::shared_ptr<TaskTimer> reg_timer_;

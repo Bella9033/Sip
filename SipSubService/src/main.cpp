@@ -24,14 +24,10 @@
 
 int main(int argc, char* argv[])
 {
-
     srand(time(0));
     SetLogLevel glog(SetLogLevel::LogLevel::INFO);
 
-    // 创建一个SipLocalConfig实例
     auto config = std::make_unique<SipLocalConfig>();
-    
-    // 初始化全局控制器
     if (!GlobalCtl::getInstance().init(std::move(config))) 
     {
         LOG(ERROR) << "Failed to initialize GlobalCtl";
@@ -40,15 +36,14 @@ int main(int argc, char* argv[])
 
     LOG(INFO) << "local_ip is: " << GCONF(getLocalIp);
 
-
-    auto reg = std::make_shared<SipRegister>(GlobalCtl::getInstance());
-    if (!reg) 
+    // 使用单例工厂获取注册器
+    auto reg = SipRegister::getInstance(GlobalCtl::getInstance());
+    if (!reg)
     {
         LOG(ERROR) << "Failed to get SipRegister instance";
         return -1;
     }
     reg->startRegService();
-
 
     while (true)
     {

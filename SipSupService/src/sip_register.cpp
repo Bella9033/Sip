@@ -143,6 +143,7 @@ pj_status_t SipRegister::handleRegister(SipTypes::RxDataPtr rdata)
         return PJ_EINVAL;
     }
 
+    // 不要用智能指针管理 txdata 交给 PJSIP 内部管理
     pjsip_tx_data* txdata { nullptr };
     auto status = pjsip_endpt_create_response(
         endpt.get(),
@@ -156,7 +157,6 @@ pj_status_t SipRegister::handleRegister(SipTypes::RxDataPtr rdata)
         LOG(ERROR) << "Failed to create response: " << status;
         return status;
     }
-    auto txdata_guard = SipTypes::makeTxData(txdata);
 
     if(!addDateHeader(txdata->msg, rdata->tp_info.pool))
     {
@@ -209,17 +209,66 @@ pj_status_t SipRegister::handleRegister(SipTypes::RxDataPtr rdata)
     return status;
 }
 
-std::string SipRegister::getCurrentUTCTime() 
+// 获取当前UTC时间
+std::tm SipRegister::getCurrentUTC()
 {
     auto now = std::chrono::system_clock::now();
-    std::time_t now_c = std::chrono::system_clock::to_time_t(now);
-    std::tm tm_utc = *std::gmtime(&now_c);
-    std::ostringstream oss;
-    // SIP协议Date头推荐格式
-    oss << std::put_time(&tm_utc, "%a, %d %b %Y %H:%M:%S GMT");
-    return oss.str();
+    std::time_t t_now = std::chrono::system_clock::to_time_t(now);
+    struct tm tm_utc;
+    
+    #ifdef _WIN32
+        if (gmtime_s(&tm_utc, &t_now) != 0) {
+            throw std::runtime_error("Failed to get UTC time");
+        }
+    #else
+        if (!gmtime_r(&t_now, &tm_utc)) {
+            throw std::runtime_error("Failed to get UTC time");
+        }
+    #endif
+    
+    return tm_utc;
 }
 
+// 格式化为SIP协议要求的格式
+std::string SipRegister::formatSIPDate(const std::tm& tm_utc)
+{
+    char buf[128];
+    // RFC 3261规范的格式：Fri, 02 May 2025 02:42:16 GMT
+    if (!std::strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S GMT", &tm_utc)) {
+        throw std::runtime_error("Failed to format UTC time");
+    }
+    return std::string(buf);
+}
+
+// 添加SIP Date header
+bool SipRegister::addDateHeader(pjsip_msg* msg, pj_pool_t* pool)
+{
+    try {
+        // 获取当前UTC时间
+        std::tm tm_utc = getCurrentUTC();
+        
+        // 格式化为SIP日期格式
+        std::string date_str = formatSIPDate(tm_utc);
+        
+        // 创建并添加header
+        pj_str_t value_time = pj_str(const_cast<char*>(date_str.c_str()));
+        pj_str_t key_time = pj_str(const_cast<char*>("Date"));
+        
+        auto date_hdr = pjsip_date_hdr_create(pool, &key_time, &value_time);
+        if (!date_hdr) {
+            LOG(ERROR) << "Failed to create Date header";
+            return false;
+        }
+        
+        pjsip_msg_add_hdr(msg, reinterpret_cast<pjsip_hdr*>(date_hdr));
+        LOG(INFO) << "Date header added: " << date_str;
+        return true;
+        
+    } catch (const std::exception& e) {
+        LOG(ERROR) << "Failed to add Date header: " << e.what();
+        return false;
+    }
+}
 
 std::string SipRegister::parseFromHeader(pjsip_msg* msg)
 {
@@ -291,36 +340,3 @@ std::string SipRegister::parseFromHeader(pjsip_msg* msg)
     return user_id;
 }
 
-
-// 辅助函数：添加日期头部
-bool SipRegister::addDateHeader(pjsip_msg* msg, pj_pool_t* pool) 
-{
-    LOG(INFO) << "Adding Date header";
-    auto now = std::chrono::system_clock::now();
-    std::time_t t_now = std::chrono::system_clock::to_time_t(now);
-    struct tm tm_utc;
-    if (!gmtime_r(&t_now, &tm_utc)) {
-        LOG(ERROR) << "Failed to get GMT time";
-        return false;
-    }
-
-    // 标准SIP格式：Fri, 02 May 2025 02:42:16 GMT
-    char buf[128];
-    if (!std::strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S GMT", &tm_utc)) {
-        LOG(ERROR) << "Failed to format UTC time";
-        return false;
-    }
-
-    pj_str_t value_time = pj_str(buf);
-    pj_str_t key_time = pj_str(const_cast<char*>("Date"));
-
-    auto date_hdr = pjsip_date_hdr_create(pool, &key_time, &value_time);
-    if(!date_hdr)
-    {
-        LOG(ERROR) << "Failed to create Date header";
-        return false;
-    }
-    pjsip_msg_add_hdr(msg, reinterpret_cast<pjsip_hdr*>(date_hdr));
-    LOG(INFO) << "Date header added: " << buf;
-    return true;
-}

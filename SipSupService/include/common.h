@@ -1,6 +1,9 @@
 #pragma once
 
 #include "log_level.h"
+#include <memory>
+#include <string>
+#include <vector>
 
 #include <fmt/format.h>
 #include <string>
@@ -23,16 +26,12 @@
 
 #include <exception>
 
-// PJSIP相关头文件
-#include <pjlib-util.h> 
-#include <pjmedia.h> 
-#include <pjsip.h> 
-#include <pjsip_ua.h>
-#include <pjsip/sip_auth.h>
-#include <pjsip/sip_module.h>
-#include <pjsip/sip_endpoint.h>
-#include <pjlib.h>
+// 确保PJSIP相关头文件在最后包含
 #include <pjlib-util.h>
+#include <pjlib.h>
+#include <pjsip.h>
+#include <pjsip_ua.h>
+
 
 #define SUB_CONF_FILE "/mnt/hgfs/share/conf/sip_sub_service.conf"
 #define SUP_CONF_FILE "/mnt/hgfs/share/conf/sip_sup_service.conf"

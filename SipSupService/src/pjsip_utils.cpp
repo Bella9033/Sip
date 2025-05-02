@@ -3,8 +3,8 @@
 
 
 // ===== 资源创建函数实现 =====
-// 使用SipTypes工厂函数创建智能指针
-SipTypes::CachingPoolPtr PjSipUtils::createCachingPool(pj_size_t sipStackSize) 
+// 使用PjSipUtils工厂函数创建智能指针
+PjSipUtils::CachingPoolPtr PjSipUtils::createCachingPool(pj_size_t sipStackSize) 
 {
     LOG(INFO) << "Creating caching pool with size: " << sipStackSize;
     auto pool = new pj_caching_pool();
@@ -12,10 +12,10 @@ SipTypes::CachingPoolPtr PjSipUtils::createCachingPool(pj_size_t sipStackSize)
     
     pj_caching_pool_init(pool, nullptr, sipStackSize);
  
-    return SipTypes::makeCachingPool(pool);
+    return PjSipUtils::makeCachingPool(pool);
 }
 
-SipTypes::PoolPtr PjSipUtils::createPool(SipTypes::CachingPoolPtr caching_pool, 
+PjSipUtils::PoolPtr PjSipUtils::createPool(PjSipUtils::CachingPoolPtr caching_pool, 
     const char* name, pj_size_t initial_size, pj_size_t increment_size) 
 {
     if (!caching_pool) return nullptr;
@@ -30,10 +30,10 @@ SipTypes::PoolPtr PjSipUtils::createPool(SipTypes::CachingPoolPtr caching_pool,
                                      nullptr);
     if (!pool) return nullptr;
  
-    return SipTypes::makePool(pool);
+    return PjSipUtils::makePool(pool);
 }
 
-SipTypes::PoolPtr PjSipUtils::createEndptPool(SipTypes::EndpointPtr endpt,
+PjSipUtils::PoolPtr PjSipUtils::createEndptPool(PjSipUtils::EndpointPtr endpt,
     const char* name, pj_size_t initial_size, pj_size_t increment_size) 
 {
     if (!endpt) return nullptr;
@@ -47,10 +47,10 @@ SipTypes::PoolPtr PjSipUtils::createEndptPool(SipTypes::EndpointPtr endpt,
                                              increment_size);
     if (!pool) return nullptr;
 
-    return SipTypes::makePool(pool);
+    return PjSipUtils::makePool(pool);
 }
 
-SipTypes::TxDataPtr PjSipUtils::createTxData(SipTypes::EndpointPtr endpt)
+PjSipUtils::TxDataPtr PjSipUtils::createTxData(PjSipUtils::EndpointPtr endpt)
 {
     if (!endpt) return nullptr;
     
@@ -58,10 +58,10 @@ SipTypes::TxDataPtr PjSipUtils::createTxData(SipTypes::EndpointPtr endpt)
     pj_status_t status = pjsip_endpt_create_tdata(endpt.get(), &tdata);
     if (status != PJ_SUCCESS || !tdata) return nullptr;
   
-    return SipTypes::makeTxData(tdata);
+    return PjSipUtils::makeTxData(tdata);
 }
 
-SipTypes::RxDataPtr PjSipUtils::cloneRxData(pjsip_rx_data* raw_data)
+PjSipUtils::RxDataPtr PjSipUtils::cloneRxData(pjsip_rx_data* raw_data)
 {
     if (!raw_data) return nullptr;
     
@@ -69,10 +69,10 @@ SipTypes::RxDataPtr PjSipUtils::cloneRxData(pjsip_rx_data* raw_data)
     pj_status_t status = pjsip_rx_data_clone(raw_data, 0, &cloned_data);
     if (status != PJ_SUCCESS || !cloned_data) return nullptr;
 
-    return SipTypes::makeRxData(cloned_data);
+    return PjSipUtils::makeRxData(cloned_data);
 }
 
-SipTypes::EndpointPtr PjSipUtils::createEndpoint(SipTypes::CachingPoolPtr caching_pool)
+PjSipUtils::EndpointPtr PjSipUtils::createEndpoint(PjSipUtils::CachingPoolPtr caching_pool)
 {
     if (!caching_pool) return nullptr;
     
@@ -80,13 +80,13 @@ SipTypes::EndpointPtr PjSipUtils::createEndpoint(SipTypes::CachingPoolPtr cachin
     pj_status_t status = pjsip_endpt_create(&caching_pool->factory, nullptr, &endpt);
     if (status != PJ_SUCCESS || !endpt) return nullptr;
 
-    return SipTypes::makeEndpoint(endpt);
+    return PjSipUtils::makeEndpoint(endpt);
 }
 
 
 // ===== 核心初始化 - 智能指针版本 =====
-pj_status_t PjSipUtils::initCore(SipTypes::CachingPoolPtr& caching_pool,
-    SipTypes::EndpointPtr& endpt) 
+pj_status_t PjSipUtils::initCore(PjSipUtils::CachingPoolPtr& caching_pool,
+    PjSipUtils::EndpointPtr& endpt) 
 {
     // 创建缓存池（如果未提供）
     if (!caching_pool) 
@@ -143,7 +143,7 @@ pj_status_t PjSipUtils::initCore(SipTypes::CachingPoolPtr& caching_pool,
 
 
 // ===== 传输层初始化 - 智能指针版本 =====
-pj_status_t PjSipUtils::initTransports(SipTypes::EndpointPtr endpt, int sip_port) 
+pj_status_t PjSipUtils::initTransports(PjSipUtils::EndpointPtr endpt, int sip_port) 
 {
     if (!endpt) 
     {
@@ -200,8 +200,8 @@ PjSipUtils::ThreadRegistrar::ThreadRegistrar()
 
 
 // ===== 资源清理 - 智能指针版本 =====
-void PjSipUtils::cleanupCore(SipTypes::CachingPoolPtr& caching_pool, 
-                             SipTypes::EndpointPtr& endpt) 
+void PjSipUtils::cleanupCore(PjSipUtils::CachingPoolPtr& caching_pool, 
+                             PjSipUtils::EndpointPtr& endpt) 
 {
     if (endpt) 
     {

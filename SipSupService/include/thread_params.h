@@ -7,7 +7,7 @@
 
 // 线程处理参数
 struct ThRxParams {
-    SipTypes::RxDataPtr rxdata;
+    PjSipUtils::RxDataPtr rxdata;
     std::shared_ptr<SipTaskBase> taskbase;
 
     ThRxParams() : rxdata(nullptr), taskbase(nullptr) {}

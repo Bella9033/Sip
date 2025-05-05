@@ -33,12 +33,16 @@ public:
     pj_status_t runRxTask(SipTypes::RxDataPtr rdata) override;
     pj_status_t registerReqMsg(SipTypes::RxDataPtr rdata) override;
     
+    std::string parseFromHeader(pjsip_msg* msg) override;
 private:   
     // 处理注册请求
     pj_status_t handleRegister(SipTypes::RxDataPtr rdata);
+    // 添加处理需要认证的注册请求的函数声明
+    pj_status_t handleAuthRegister(SipTypes::RxDataPtr rdata); 
+      
     void checkRegisterProc();
 
-    std::string parseFromHeader(pjsip_msg* msg);
+
     static std::string formatSIPDate(const std::tm& tm_utc);
     static std::tm getCurrentUTC();
     bool addDateHeader(pjsip_msg* msg, pj_pool_t* pool);

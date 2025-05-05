@@ -160,3 +160,43 @@ void GlobalCtl::updateRegistration(std::string_view id, int expires_new, bool re
     }
     update_counter_++;
 }
+
+bool GlobalCtl::getAuthInfo(std::string_view id)
+{
+    std::unique_lock<std::shared_mutex> lock(domain_mutex_);
+    auto domain = findDomain(id);
+    if (domain) 
+    {
+        LOG(INFO) << "Getting auth info for domain: " << id << ", auth=" << domain->auth;
+        return domain->auth;
+    }  
+    LOG(ERROR) << "Domain not found when getting auth info: " << id;
+    return false;  // 当域不存在时返回 false
+}
+
+std::string GlobalCtl::getRandomNum(int length)
+{
+    LOG(INFO) << "Generating random number of length: " << length;
+
+    srand(time(nullptr));
+    std::random_device rd;
+    // 使用 random_device 生成一个种子
+    std::mt19937 gen(rd()); 
+
+    // 定义可能的字符集
+    const std::string chars = "0123456789";
+    
+    // 使用均匀分布
+    std::uniform_int_distribution<> dis(0, chars.size() - 1);
+    
+    std::string result;
+    result.reserve(length);  // 预分配空间以提高效率
+    
+    // 生成随机字符串
+    for (int i = 0; i < length; ++i) 
+    {
+        result += chars[dis(gen)];
+    }
+    
+    return result;
+}

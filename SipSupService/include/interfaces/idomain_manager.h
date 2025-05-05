@@ -18,8 +18,9 @@ public:
     virtual bool checkIsValid(const std::string& id) const = 0;
     virtual std::vector<DomainInfo>& getDomainInfoList() = 0;
 
-    virtual std::shared_mutex& getMutex() = 0; // 获取互斥锁
+    virtual std::shared_mutex& getMutex() = 0; 
     virtual DomainInfo* findDomain(std::string_view id) = 0;
+    virtual bool getAuthInfo(std::string_view id) = 0;
 
 
     virtual void setExpires(std::string_view id, int expires_value) = 0;

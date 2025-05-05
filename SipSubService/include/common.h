@@ -18,9 +18,6 @@
 #include <event2/thread.h>    
 
 
-#include <limits>
-#include <climits>
-
 #include <exception>
 
 // PJSIP相关头文件

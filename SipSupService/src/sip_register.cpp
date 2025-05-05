@@ -86,7 +86,6 @@ void SipRegister::checkRegisterProc()
         LOG(ERROR) << "Failed to get system uptime, using current time: " << reg_time;
     }
 
-
     auto& domains = GlobalCtl::getInstance().getDomainInfoList();
     LOG(INFO) << "DomainInfoList size: " << domains.size();
     for (auto& domain : domains)
@@ -114,19 +113,63 @@ pj_status_t SipRegister::runRxTask(SipTypes::RxDataPtr rdata)
 
 pj_status_t SipRegister::registerReqMsg(SipTypes::RxDataPtr rdata)
 {
-    // 处理SIP消息数据(RxDataPtr)，调用链中涉及SIP栈操作，需要添加线程注册
-    PjSipUtils::ThreadRegistrar thread_registrar;
+    LOG(INFO) << "registerReqMsg called";
     if (!rdata) 
     {
         LOG(ERROR) << "registerReqMsg: rdata is null";
         return PJ_EINVAL;
     }
-    return handleRegister(rdata);
+    // 处理SIP消息数据(RxDataPtr)，调用链中涉及SIP栈操作，需要添加线程注册
+    PjSipUtils::ThreadRegistrar thread_registrar;
+    pjsip_msg* msg = rdata->msg_info.msg;
+    if(GlobalCtl::getInstance().getAuthInfo(parseFromHeader(msg)))
+    {
+        LOG(INFO) << "Authentication required for domain: " << parseFromHeader(msg);
+        return handleAuthRegister(rdata); 
+    }else{
+        LOG(INFO) << "No authentication required for domain: " << parseFromHeader(msg);
+        return handleRegister(rdata);
+    }
 }
+
+pj_status_t SipRegister::handleAuthRegister(SipTypes::RxDataPtr rdata)
+{
+    LOG(INFO) << "handleAuthRegister called";
+    pjsip_msg* msg = rdata->msg_info.msg;
+    pjsip_hdr* hdr_list;
+    pj_list_init(&hdr_list);
+    pj_status_t status = PJ_SUCCESS;
+    int  status_code = static_cast<int>(SipStatusCode::SIP_FORBIDEN);
+    if(pjsip_msg_find_hdr(msg, PJSIP_H_AUTHORIZATION, nullptr) == nullptr)
+    {
+        auto hdr = pjsip_www_authenticate_hdr_create(rdata->tp_info.pool);
+        hdr->scheme = pj_str("Digest");
+        std::string nonce = GlobalCtl::getRandomNum(32);
+        LOG(INFO) << "Generated nonce: " << nonce;
+        hdr->challenge.digest.nonce = pj_str((char*)nonce.c_str());      
+        hdr->challenge.digest.realm = pj_str((char*)GlobalCtl::getInstance().getConfig().getRealm().c_str());
+        std::string nonce = GlobalCtl::getRandomNum(32);
+        LOG(INFO) << "Generated nonce: " << nonce;
+        hdr->challenge.digest.opaque = pj_str((char*)nonce.c_str());
+        hdr->challenge.digest.algorithm = pj_str("MD5");
+
+        pj_list_push_back(&hdr_list, hdr);
+        status = pjsip_endpt_respond(GlobalCtl::getInstance().getSipCore().getEndPoint().get(), 
+            rdata.get(), status_code, nullptr, &hdr_list, nullptr, nullptr);
+        if(status != PJ_SUCCESS) 
+        {
+            LOG(ERROR) << "Failed to send authentication response: " << status;
+            return status;
+        }
+    }
+
+}
+
 
 pj_status_t SipRegister::handleRegister(SipTypes::RxDataPtr rdata)
 {
     LOG(INFO) << "handleRegister called";
+    std::string random = GlobalCtl::getRandomNum(32);
     // 处理SIP消息数据(RxDataPtr)，调用链中涉及SIP栈操作，需要添加线程注册
     PjSipUtils::ThreadRegistrar thread_registrar;
     if (!rdata || !rdata->msg_info.msg) 
@@ -313,6 +356,8 @@ bool SipRegister::addDateHeader(pjsip_msg* msg, pj_pool_t* pool)
     }
 }
 
+
+
 std::string SipRegister::parseFromHeader(pjsip_msg* msg)
 {
     if (!msg) {
@@ -382,4 +427,6 @@ std::string SipRegister::parseFromHeader(pjsip_msg* msg)
     LOG(INFO) << "Parsed From header user ID: " << user_id;
     return user_id;
 }
+
+
 

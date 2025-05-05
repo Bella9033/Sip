@@ -11,15 +11,18 @@ struct NodeInfo
     std::string ip;
     int port { 0 };
     int proto { 0 };
-    int auth { 0 };
+    bool auth { false };
+    std::string realm;
 
     NodeInfo(std::string id_, std::string ip_, 
-        int port_, int proto_, int auth_)
+        int port_, int proto_, bool auth_,
+        std::string realm_ )
         : id(std::move(id_))
         , ip(std::move(ip_))
         , port(port_)
         , proto(proto_)
         , auth(auth_) 
+        , realm(std::move(realm_))
     { }
 
     NodeInfo() = default;
@@ -32,8 +35,8 @@ struct DomainInfo
     std::string addr_ip;
     int sip_port { 0 };
     int proto { 0 };
-    int auth { 0 };
-    int expires { 60 };
+    bool auth { false };
+    int expires { 0 };
     bool registered { false };
     time_t last_reg_time { 0 };
 

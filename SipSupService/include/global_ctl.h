@@ -15,6 +15,8 @@
 #include <string_view>
 #include <shared_mutex>
 #include <atomic>
+#include <random>
+#include <sstream>
 
 class SipLocalConfig;
 
@@ -39,6 +41,11 @@ public:
     void setExpires(std::string_view id, int expires_value) override;
     void setRegistered(std::string_view id, bool registered_value) override;
     void setLastRegTime(std::string_view id, time_t last_reg_time_value) override;
+    bool getAuthInfo(std::string_view id) override;
+
+
+    static std::string getRandomNum(int length);
+    
     std::shared_mutex& getMutex() override { return domain_mutex_; }// 获取互斥锁
     DomainInfo* findDomain(std::string_view id) override;
 

@@ -15,6 +15,7 @@ public:
     virtual const std::string& getSipId() const = 0;
     virtual const std::string& getSipIp() const = 0;
     virtual int getSipPort() const = 0;
+    virtual const std::string& getSipRealm() const = 0;
     virtual const std::vector<NodeInfo>& getNodeInfoList() const = 0;
     virtual bool readConf() = 0; // 添加读取配置的接口方法
 };

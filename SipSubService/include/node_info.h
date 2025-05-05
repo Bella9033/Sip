@@ -12,22 +12,32 @@ struct NodeInfo
     std::string ip;
     int port { 0 };
     int proto { 0 };
-    int auth { 0 };
-    int expires { 60 }; // 默认过期时间为60秒
+    bool auth { false }; 
+    int expires { 60 }; 
+    std::string usr;
+    std::string pwd;
+    std::string realm; 
+
 
     // 构造函数，从配置参数构造 NodeInfo
     NodeInfo(std::string id_, 
         std::string ip_, 
         int port_,
         int proto_,
-        int auth_,
-        int expires_)
-    : id(std::move(id_))
-    , ip(std::move(ip_))
-    , port(port_)
-    , proto(proto_)
-    , auth(auth_)
-    , expires(expires_)
+        int expires_,
+        bool auth_,
+        std::string usr_,
+        std::string pwd_,
+        std::string realm_)
+   : id(std::move(id_))
+   , ip(std::move(ip_))
+   , port(port_)
+   , proto(proto_)
+   , expires(expires_)
+   , auth(auth_)
+   , usr(std::move(usr_))
+   , pwd(std::move(pwd_))
+   , realm(std::move(realm_))
     { }
 
     // 默认构造函数
@@ -43,6 +53,10 @@ struct DomainInfo
     int proto { 0 };
     int expires { 60 };
     bool registered { false };
+    bool isAuth { false }; // 是否需要认证
+    std::string usr;
+    std::string pwd;
+    std::string realm; 
 
     // 从 NodeInfo 构造 DomainInfo
     explicit DomainInfo(const NodeInfo& node)
@@ -51,8 +65,20 @@ struct DomainInfo
         , sip_port(node.port)
         , proto(node.proto)
         , expires(node.expires)
-        , registered(false)  // 初始化为未注册状态
-    { }
+        , registered(false)
+        , isAuth(node.auth)
+        , usr(node.usr)
+        , pwd(node.pwd)
+        , realm(node.realm)
+    { 
+        // if (isAuth) 
+        // {
+        //     isAuth = true;
+        //     usr = node.usr;
+        //     pwd = node.pwd;
+        //     realm = node.realm;
+        // }
+    }
 
     // 默认构造函数
     DomainInfo() = default;

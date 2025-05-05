@@ -27,6 +27,8 @@ bool SipLocalConfig::readConf()
     auto sip_id_opt = conf_reader_.getString("sip_server", "sip_id", &err);
     auto sip_ip_opt = conf_reader_.getString("sip_server", "sip_ip", &err);
     auto sip_port_opt = conf_reader_.getInt("sip_server", "sip_port", &err);
+    auto sip_realm_opt = conf_reader_.getString("sip_server", "sip_realm", &err);
+    
     auto subnode_num_opt = conf_reader_.getInt("sip_server", "subnode_num", &err);
     if(!sip_id_opt || !sip_ip_opt || !sip_port_opt || !subnode_num_opt) 
     {
@@ -38,7 +40,12 @@ bool SipLocalConfig::readConf()
     sip_id_ = *sip_id_opt;
     sip_ip_ = *sip_ip_opt; 
     sip_port_ = *sip_port_opt;
+    sip_realm_ = *sip_realm_opt;
     subnode_num_ = *subnode_num_opt;
+    LOG(INFO) << fmt::format(
+        "SIP Server Config: ID={}, IP={}, Port={}, Realm={}, SubnodeNum={}",
+        sip_id_, sip_ip_, sip_port_, sip_realm_, subnode_num_
+    );
 
     int num = *subnode_num_opt;
     if (num <= 0) 
@@ -58,7 +65,7 @@ bool SipLocalConfig::readConf()
         auto ip_opt = conf_reader_.getString("sip_server", "subnode_ip" + std::to_string(i), &err);
         auto port_opt = conf_reader_.getInt("sip_server", "subnode_port" + std::to_string(i), &err);
         auto proto_opt = conf_reader_.getInt("sip_server", "subnode_proto" + std::to_string(i), &err);
-        auto auth_opt = conf_reader_.getInt("sip_server", "subnode_auth" + std::to_string(i), &err);
+        auto auth_opt = conf_reader_.getString("sip_server", "subnode_auth" + std::to_string(i), &err);
         
         if(!id_opt || !ip_opt || !port_opt || !proto_opt || !auth_opt) 
         {
@@ -72,7 +79,8 @@ bool SipLocalConfig::readConf()
         node.ip = std::move(*ip_opt);
         node.port = *port_opt;
         node.proto = *proto_opt;
-        node.auth = *auth_opt;
+        // 将字符串转换为布尔值
+        node.auth = (*auth_opt == "true" || *auth_opt == "1");
 
 
         LOG(INFO) << fmt::format(

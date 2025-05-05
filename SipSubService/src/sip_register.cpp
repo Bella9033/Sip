@@ -169,6 +169,26 @@ pj_status_t SipRegister::gbRegister(DomainInfo& domains)
         return status;
     }
 
+    if(domains.isAuth)
+    {
+        pjsip_cred_info cred;
+        pj_bzero(&cred, sizeof(pjsip_cred_info));
+        cred.scheme = pj_str("digest");
+        cred.realm = pj_str((char*)domains.realm.c_str());
+        cred.username = pj_str((char*)domains.usr.c_str());
+        cred.data_type = PJSIP_CRED_DATA_PLAIN_PASSWD;
+        cred.data = pj_str((char*)domains.pwd.c_str());
+
+        pjsip_regc_set_credentials(regc,1,&cred);
+        if(status != PJ_SUCCESS)
+        {
+            pjsip_regc_destroy(regc);
+            LOG(ERROR) << "pjsip_regc_set_credentials failed, code: " << status;
+            return status;
+        }
+
+    }
+
     pjsip_tx_data* tdata { nullptr };
     status = pjsip_regc_register(regc, PJ_TRUE, &tdata);
     if (status != PJ_SUCCESS)
@@ -178,7 +198,7 @@ pj_status_t SipRegister::gbRegister(DomainInfo& domains)
         return status;
     }
 
-    // 核心修正：不使用智能指针管理 tdata，交由PJSIP管理
+
     status = pjsip_regc_send(regc, tdata);
     if (status != PJ_SUCCESS)
     {

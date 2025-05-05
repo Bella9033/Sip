@@ -8,6 +8,7 @@
 bool GlobalCtl::init(std::unique_ptr<IConfigProvider> config) 
 {
     LOG(INFO) << "GlobalCtl instance init..."; 
+    
     g_config_ = std::move(config);
     
     if (!g_config_) 
@@ -21,6 +22,7 @@ bool GlobalCtl::init(std::unique_ptr<IConfigProvider> config)
         LOG(ERROR) << "GlobalCtl instance readConfig failed!";
         return false;
     }
+
     
     buildDomainInfoList();
     if (domain_info_list_.empty()) 
@@ -29,17 +31,22 @@ bool GlobalCtl::init(std::unique_ptr<IConfigProvider> config)
         return false;
     }
 
+    LOG(INFO) << "Initializing ThreadPool with 4 threads";
     if (!g_thread_pool_) 
     {
         g_thread_pool_ = std::make_unique<ThreadPool>(4);
     }
+    LOG(INFO) << "Initializing ThreadPool with 4 threads";
+
     
+    LOG(INFO) << "Initializing SipCore at port: " << g_config_->getSipPort();
     if (!g_sip_core_) 
     {
         g_sip_core_ = std::make_shared<SipCore>();
     }
     
     g_sip_core_->initSip(g_config_->getSipPort());
+    LOG(INFO) << "Initializing SipCore at port: " << g_config_->getSipPort();
     LOG(INFO) << "GlobalCtl instance init success!";
     return true;
 }
@@ -47,10 +54,20 @@ bool GlobalCtl::init(std::unique_ptr<IConfigProvider> config)
 void GlobalCtl::buildDomainInfoList()
 {
     LOG(INFO) << "Building DomainInfo list...";
-    std::unique_lock<std::shared_mutex> lock(domain_mutex_);  // 写锁
+    std::unique_lock<std::shared_mutex> lock(domain_mutex_);
     const auto& nodes = g_config_->getNodeInfoList();
     domain_info_list_.clear();
-    domain_info_list_.reserve(nodes.size());
+    if (nodes.size() > 100000) // 假设 100,000 是最大允许值
+    {
+        LOG(ERROR) << "Too many nodes in configuration: " << nodes.size();
+        return;
+    }
+    try {
+        domain_info_list_.reserve(nodes.size());
+    } catch (const std::bad_alloc& e) {
+        LOG(ERROR) << "Memory allocation failed in buildDomainInfoList: " << e.what();
+        return;
+    }
     for(const auto& node : nodes)
     {
         domain_info_list_.emplace_back(node);

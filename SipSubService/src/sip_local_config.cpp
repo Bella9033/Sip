@@ -5,7 +5,7 @@
 
 SipLocalConfig::SipLocalConfig() 
     : conf_reader_(SUB_CONF_FILE)
-    { }
+{ }
 
 bool SipLocalConfig::readConf() 
 {
@@ -27,6 +27,8 @@ bool SipLocalConfig::readConf()
     auto sip_id_opt = conf_reader_.getString("sip_server", "sip_id", &err);
     auto sip_ip_opt = conf_reader_.getString("sip_server", "sip_ip", &err);
     auto sip_port_opt = conf_reader_.getInt("sip_server", "sip_port", &err);
+    auto sip_realm_opt = conf_reader_.getString("sip_server", "sip_realm", &err);
+    
     auto supnode_num_opt = conf_reader_.getInt("sip_server", "supnode_num", &err);
     if(!sip_id_opt || !sip_ip_opt || !sip_port_opt || !supnode_num_opt) 
     {
@@ -38,6 +40,7 @@ bool SipLocalConfig::readConf()
     sip_id_ = *sip_id_opt;
     sip_ip_ = *sip_ip_opt; 
     sip_port_ = *sip_port_opt;
+    sip_realm_ = *sip_realm_opt;
     supnode_num_ = *supnode_num_opt;
 
     int num = *supnode_num_opt;
@@ -58,14 +61,19 @@ bool SipLocalConfig::readConf()
         auto ip_opt = conf_reader_.getString("sip_server", "supnode_ip" + std::to_string(i), &err);
         auto port_opt = conf_reader_.getInt("sip_server", "supnode_port" + std::to_string(i), &err);
         auto proto_opt = conf_reader_.getInt("sip_server", "supnode_proto" + std::to_string(i), &err);
-        auto auth_opt = conf_reader_.getInt("sip_server", "supnode_auth" + std::to_string(i), &err);
+        auto expires_opt = conf_reader_.getInt("sip_server", "supnode_expires" + std::to_string(i), &err);
+        auto auth_opt = conf_reader_.getString("sip_server", "supnode_auth" + std::to_string(i), &err);
+        auto usr_opt = conf_reader_.getString("sip_server", "supnode_usr" + std::to_string(i), &err);
+        auto pwd_opt = conf_reader_.getString("sip_server", "supnode_pwd" + std::to_string(i), &err);
+        auto realm_opt = conf_reader_.getString("sip_server", "supnode_realm" + std::to_string(i), &err);
 
-
-        if(!id_opt || !ip_opt || !port_opt || !proto_opt || !auth_opt  ) 
+        if(!id_opt || !ip_opt || !port_opt || !proto_opt 
+            || !auth_opt || !usr_opt || !pwd_opt) 
         {
             LOG(ERROR) << fmt::format("supnode[{}] config error: {}", i, err);
             return false;
         }
+
 
         // 使用一一赋值的方式创建 NodeInfo
         NodeInfo node;
@@ -73,13 +81,18 @@ bool SipLocalConfig::readConf()
         node.ip = std::move(*ip_opt);
         node.port = *port_opt;
         node.proto = *proto_opt;
-        node.auth = *auth_opt;
-        node.expires = 60; // 默认过期时间为60秒
+        node.expires = *expires_opt; // 默认过期时间为60秒
+        node.auth = (*auth_opt == "true") ? true : false;
+        node.usr = *usr_opt;
+        node.pwd = *pwd_opt;
+        node.realm = *realm_opt;
 
 
         LOG(INFO) << fmt::format(
-            "Created NodeInfo: ID={}, IP={}, Port={}, Proto={}, Auth={}, Expires={}",
-            node.id, node.ip, node.port, node.proto, node.auth, node.expires
+            "Created NodeInfo: ID={}, IP={}, Port={}, Proto={}, "
+            "Expires={}, Auth={}, Username={}, Password={}",
+            node.id, node.ip, node.port, node.proto, 
+            node.expires, node.auth, node.usr, node.pwd
         );
 
         tmp_list.push_back(std::move(node));
@@ -90,7 +103,7 @@ bool SipLocalConfig::readConf()
         std::lock_guard<std::mutex> lock(node_mutex_);
         LOG(INFO) << "Starting to update node_info_list_...";
         node_info_list_ = std::move(tmp_list);
-        LOG(INFO) << "node_info_list_ size: " << node_info_list_.size();\
+        LOG(INFO) << "node_info_list_ size: " << node_info_list_.size();
         LOG(INFO) << fmt::format("sip_id: {}, sip_ip: {}, sip_port: {}",
             *sip_id_opt, *sip_ip_opt, *sip_port_opt);
     }

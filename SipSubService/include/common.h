@@ -39,9 +39,9 @@
 
 
 // SIP协议栈缓存池初始化大小
-constexpr size_t SIP_STACK_SIZE = 1024 * 256;
+constexpr size_t SIP_STACK_SIZE = 1024 * 128;
 // SIP分配池大小
-constexpr size_t SIP_ALLOC_POOL_1M = 1024 * 1024 * 1;
+constexpr size_t SIP_ALLOC_POOL_1M = 1024 * 512;
 
 
 enum class SipStatusCode

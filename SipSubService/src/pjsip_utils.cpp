@@ -7,12 +7,24 @@
 SipTypes::CachingPoolPtr PjSipUtils::createCachingPool(pj_size_t sipStackSize) 
 {
     LOG(INFO) << "Creating caching pool with size: " << sipStackSize;
-    auto pool = new pj_caching_pool();
-    if (!pool) return nullptr;
     
-    pj_caching_pool_init(pool, nullptr, sipStackSize);
- 
-    return SipTypes::makeCachingPool(pool);
+    try {
+        auto pool = new pj_caching_pool();
+        if (!pool) {
+            LOG(ERROR) << "Failed to allocate pj_caching_pool";
+            return nullptr;
+        }
+        
+        // 初始化缓存池前检查内存
+        LOG(INFO) << "About to initialize caching pool";
+        pj_caching_pool_init(pool, nullptr, sipStackSize);
+        LOG(INFO) << "Caching pool initialized successfully";
+        
+        return SipTypes::makeCachingPool(pool);
+    } catch (const std::bad_alloc& e) {
+        LOG(ERROR) << "Memory allocation failed in createCachingPool: " << e.what();
+        return nullptr;
+    }
 }
 
 SipTypes::PoolPtr PjSipUtils::createPool(SipTypes::CachingPoolPtr caching_pool, 

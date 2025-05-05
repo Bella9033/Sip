@@ -69,7 +69,7 @@ SipCore::~SipCore()
 pj_status_t SipCore::initSip(int sip_port) 
 {  
     LOG(INFO) << "Initializing SipCore...";
-    pj_log_set_level(0);
+    pj_log_set_level(6);
     pj_status_t status;
 
     if (!caching_pool_) 

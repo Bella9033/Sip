@@ -24,7 +24,7 @@ public:
     const std::string& getSipId() const override { return sip_id_; }
     const std::string& getSipIp() const override { return sip_ip_; }
     int getSipPort() const override { return sip_port_; }
-    const std::string& getSipRealm() const override { return sip_realm_; }
+    const std::string& getNodeRealm() const override { return node_realm_; }
     const std::vector<NodeInfo>& getNodeInfoList() const override { return node_info_list_; }
     
     // 非const版本用于内部修改
@@ -36,8 +36,9 @@ private:
     std::string local_ip_;
     std::string sip_id_;
     std::string sip_ip_;
-    std::string sip_realm_;
     int sip_port_{ 0 }; 
+
+    std::string node_realm_;
 
     int supnode_num_{ 0 };
 

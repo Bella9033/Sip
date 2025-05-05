@@ -27,7 +27,6 @@ bool SipLocalConfig::readConf()
     auto sip_id_opt = conf_reader_.getString("sip_server", "sip_id", &err);
     auto sip_ip_opt = conf_reader_.getString("sip_server", "sip_ip", &err);
     auto sip_port_opt = conf_reader_.getInt("sip_server", "sip_port", &err);
-    auto sip_realm_opt = conf_reader_.getString("sip_server", "sip_realm", &err);
     
     auto supnode_num_opt = conf_reader_.getInt("sip_server", "supnode_num", &err);
     if(!sip_id_opt || !sip_ip_opt || !sip_port_opt || !supnode_num_opt) 
@@ -40,7 +39,6 @@ bool SipLocalConfig::readConf()
     sip_id_ = *sip_id_opt;
     sip_ip_ = *sip_ip_opt; 
     sip_port_ = *sip_port_opt;
-    sip_realm_ = *sip_realm_opt;
     supnode_num_ = *supnode_num_opt;
 
     int num = *supnode_num_opt;
@@ -68,13 +66,14 @@ bool SipLocalConfig::readConf()
         auto realm_opt = conf_reader_.getString("sip_server", "supnode_realm" + std::to_string(i), &err);
 
         if(!id_opt || !ip_opt || !port_opt || !proto_opt 
-            || !auth_opt || !usr_opt || !pwd_opt) 
+            || !auth_opt || !usr_opt || !pwd_opt || !realm_opt) 
         {
             LOG(ERROR) << fmt::format("supnode[{}] config error: {}", i, err);
             return false;
         }
 
-
+        node_realm_ = *realm_opt; // 更新节点的 realm
+        
         // 使用一一赋值的方式创建 NodeInfo
         NodeInfo node;
         node.id = std::move(*id_opt);

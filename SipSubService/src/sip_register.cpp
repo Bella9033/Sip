@@ -173,7 +173,8 @@ pj_status_t SipRegister::gbRegister(DomainInfo& domains)
     {
         pjsip_cred_info cred;
         pj_bzero(&cred, sizeof(pjsip_cred_info));
-        cred.scheme = pj_str("digest");
+        char digest_scheme[] = "digest"; // 创建可修改的字符数组
+        cred.scheme = pj_str(digest_scheme);
         cred.realm = pj_str((char*)domains.realm.c_str());
         cred.username = pj_str((char*)domains.usr.c_str());
         cred.data_type = PJSIP_CRED_DATA_PLAIN_PASSWD;

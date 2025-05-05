@@ -17,11 +17,18 @@ pjsip_module SipCore::recv_mod = {
 
 SipCore::SipCore()
 {
-    caching_pool_ = PjSipUtils::createCachingPool(SIP_STACK_SIZE);
-    if (!caching_pool_) 
-    {
-        LOG(ERROR) << "Failed to create caching pool";
-        throw std::runtime_error("Failed to create caching pool");
+    try {
+        LOG(INFO) << "Creating caching pool with size: " << SIP_STACK_SIZE;
+        caching_pool_ = PjSipUtils::createCachingPool(SIP_STACK_SIZE);
+        if (!caching_pool_) 
+        {
+            LOG(ERROR) << "Failed to create caching pool";
+            throw std::runtime_error("Failed to create caching pool");
+        }
+        LOG(INFO) << "Caching pool created successfully";
+    } catch (const std::bad_alloc& e) {
+        LOG(ERROR) << "Memory allocation failed in SipCore constructor: " << e.what();
+        throw; // 重新抛出异常以便上层捕获
     }
     endpt_ = nullptr;
 }
@@ -68,7 +75,7 @@ void SipCore::pollingEventLoop(SipTypes::EndpointPtr endpt)
 pj_status_t SipCore::initSip(int sip_port) 
 {  
     LOG(INFO) << "Initializing SipCore...";
-    pj_log_set_level(0);
+    pj_log_set_level(6);
     pj_status_t status;
 
     if (!caching_pool_) 

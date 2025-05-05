@@ -135,34 +135,66 @@ pj_status_t SipRegister::registerReqMsg(SipTypes::RxDataPtr rdata)
 pj_status_t SipRegister::handleAuthRegister(SipTypes::RxDataPtr rdata)
 {
     LOG(INFO) << "handleAuthRegister called";
+    if (!rdata) {
+        LOG(ERROR) << "handleAuthRegister: rdata is null";
+        return PJ_EINVAL;
+    }
+
     pjsip_msg* msg = rdata->msg_info.msg;
-    pjsip_hdr* hdr_list;
-    pj_list_init(&hdr_list);
+    int status_code = static_cast<int>(SipStatusCode::SIP_FORBIDEN);
     pj_status_t status = PJ_SUCCESS;
-    int  status_code = static_cast<int>(SipStatusCode::SIP_FORBIDEN);
+
     if(pjsip_msg_find_hdr(msg, PJSIP_H_AUTHORIZATION, nullptr) == nullptr)
     {
-        auto hdr = pjsip_www_authenticate_hdr_create(rdata->tp_info.pool);
-        hdr->scheme = pj_str("Digest");
-        std::string nonce = GlobalCtl::getRandomNum(32);
-        LOG(INFO) << "Generated nonce: " << nonce;
-        hdr->challenge.digest.nonce = pj_str((char*)nonce.c_str());      
-        hdr->challenge.digest.realm = pj_str((char*)GlobalCtl::getInstance().getConfig().getRealm().c_str());
-        std::string nonce = GlobalCtl::getRandomNum(32);
-        LOG(INFO) << "Generated nonce: " << nonce;
-        hdr->challenge.digest.opaque = pj_str((char*)nonce.c_str());
-        hdr->challenge.digest.algorithm = pj_str("MD5");
+        // 创建 WWW-Authenticate header
+        pjsip_www_authenticate_hdr *hdr = pjsip_www_authenticate_hdr_create(rdata->tp_info.pool);
+        if (!hdr) {
+            LOG(ERROR) << "Failed to create WWW-Authenticate header";
+            return PJ_ENOMEM;
+        }
 
+        // 使用 const char* 避免字符串常量警告
+        const char* digest_scheme = "Digest";
+        const char* md5_alg = "MD5";
+        hdr->scheme = pj_str((char*)digest_scheme);
+        
+        // nonce
+        std::string nonce = GlobalCtl::getRandomNum(32);
+        LOG(INFO) << "Generated nonce: " << nonce;
+        hdr->challenge.digest.nonce = pj_str((char*)nonce.c_str()); 
+
+        // realm
+        std::string realm = GlobalCtl::getInstance().getConfig().getSipRealm();
+        hdr->challenge.digest.realm = pj_str((char*)realm.c_str());
+        
+        // 加密方式
+        hdr->challenge.digest.algorithm = pj_str((char*)md5_alg);
+
+        // 初始化响应头列表
+        pjsip_hdr hdr_list;
+        pj_list_init(&hdr_list);
         pj_list_push_back(&hdr_list, hdr);
-        status = pjsip_endpt_respond(GlobalCtl::getInstance().getSipCore().getEndPoint().get(), 
-            rdata.get(), status_code, nullptr, &hdr_list, nullptr, nullptr);
+
+        // 发送响应
+        status = pjsip_endpt_respond(
+            GlobalCtl::getInstance().getSipCore().getEndPoint().get(),
+            nullptr,                    // tsx_user
+            rdata.get(),               // rdata
+            status_code,               // status code
+            nullptr,                   // reason
+            (const pjsip_hdr*)&hdr_list, // header list (转换为 const)
+            nullptr,                   // body
+            nullptr                    // p_tsx
+        );
+
         if(status != PJ_SUCCESS) 
         {
             LOG(ERROR) << "Failed to send authentication response: " << status;
             return status;
         }
     }
-
+    
+    return status;  // 返回状态
 }
 
 

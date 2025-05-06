@@ -109,29 +109,33 @@ void SipRegister::checkRegisterProc()
         reg_time = std::time(nullptr);
         LOG(ERROR) << "Failed to get system uptime, using current time: " << reg_time;
     }
-    
-    PjSipUtils::ThreadRegistrar thread_registrar;
-    std::lock_guard<std::mutex> lock(register_mutex_);
-    LOG(INFO) << "checkRegisterProc: lock acquired";
+    // 使用RAII方式管理锁的生命周期
+    try {
+        PjSipUtils::ThreadRegistrar thread_registrar;
+        std::lock_guard<std::mutex> lock(register_mutex_);
+        LOG(INFO) << "checkRegisterProc: lock acquired";
 
 
-    auto& domains = GlobalCtl::getInstance().getDomainInfoList();
-    LOG(INFO) << "DomainInfoList size: " << domains.size();
+        auto& domains = GlobalCtl::getInstance().getDomainInfoList();
+        LOG(INFO) << "DomainInfoList size: " << domains.size();
 
-    // 遍历所有子域信息
-    for (auto& domain : domains)
-    {
-        if (domain.registered)
+        // 遍历所有子域信息
+        for (auto& domain : domains)
         {
-            LOG(INFO) << "reg_time: " << reg_time << ", last_reg_time: " << domain.last_reg_time;
-            // 检查注册是否过期
-            if(reg_time - domain.last_reg_time >= domain.expires)
+            if (domain.registered)
             {
-                // 如果过期则标记为未注册状态
-                domain.registered = false;
-                LOG(INFO) << "Registration has expired.";
+                LOG(INFO) << "reg_time: " << reg_time << ", last_reg_time: " << domain.last_reg_time;
+                // 检查注册是否过期
+                if(reg_time - domain.last_reg_time >= domain.expires)
+                {
+                    // 如果过期则标记为未注册状态
+                    domain.registered = false;
+                    LOG(INFO) << "Registration has expired.";
+                }
             }
         }
+    } catch (const std::exception& e) {
+        LOG(ERROR) << "Exception in checkRegisterProc: " << e.what();
     }
 }
 
@@ -197,7 +201,10 @@ pj_status_t SipRegister::handleAuthRegister(SipTypes::RxDataPtr rdata)
         try {
             // 创建 WWW-Authenticate header
             auto hdr = pjsip_www_authenticate_hdr_create(tdata->pool);
-            if (!hdr) {
+            if (!hdr) 
+            {
+                // 确保在出错时释放tdata资源
+                pjsip_tx_data_dec_ref(tdata);
                 throw std::runtime_error("Failed to create WWW-Authenticate header");
             }
 
@@ -227,7 +234,10 @@ pj_status_t SipRegister::handleAuthRegister(SipTypes::RxDataPtr rdata)
             // 获取响应地址并发送
             pjsip_response_addr res_addr;
             status = pjsip_get_response_addr(tdata->pool, rdata.get(), &res_addr);
-            if (status != PJ_SUCCESS) {
+            if (status != PJ_SUCCESS) 
+            {
+                // 确保释放资源
+                pjsip_tx_data_dec_ref(tdata);
                 throw std::runtime_error("Failed to get response address");
             }
 
@@ -238,37 +248,56 @@ pj_status_t SipRegister::handleAuthRegister(SipTypes::RxDataPtr rdata)
                 nullptr,
                 nullptr);
 
+            // 不需要手动减少引用计数，pjsip_endpt_send_response会处理
+            // tdata在此点已被pjsip内部管理，无需再调用pjsip_tx_data_dec_ref
+
         } catch (const std::exception& e) {
             LOG(ERROR) << "Exception in auth handling: " << e.what();
             status = PJ_EINVAL;
-        }
-
-        if (tdata) {
-            pjsip_tx_data_dec_ref(tdata);
+            // 确保在异常处理中也释放资源
+            if (tdata) 
+            {
+                pjsip_tx_data_dec_ref(tdata);
+            }
         }
         return status;
     }
     else
     {
         // 验证认证信息
+        pjsip_tx_data* tdata { nullptr };
+        
         try {
             pjsip_auth_srv auth_srv;
             std::string realm_str = GlobalCtl::getInstance().getConfig().getSipRealm();
             pj_str_t realm = pj_str((char*)realm_str.c_str());
             
-            status = pjsip_auth_srv_init(rdata->tp_info.pool, &auth_srv, &realm, &auth_cred_callback, 0);
-            if(status != PJ_SUCCESS) {
+            // 确保使用正确的池创建auth_srv
+            // 不要使用rdata->tp_info.pool，因为它可能在某些情况下无效
+            pj_pool_t* tmp_pool = pjsip_endpt_create_pool(
+                GlobalCtl::getInstance().getSipCore().getEndPoint().get(),
+                "auth_pool", 4000, 4000);
+            
+            if (!tmp_pool) 
+            {
+                throw std::runtime_error("Failed to create temporary pool");
+            }
+
+            status = pjsip_auth_srv_init(tmp_pool, &auth_srv, &realm, &auth_cred_callback, 0);
+            if(status != PJ_SUCCESS) 
+            {
+                pjsip_endpt_release_pool(GlobalCtl::getInstance().getSipCore().getEndPoint().get(), tmp_pool);
                 throw std::runtime_error("Failed to initialize authentication server");
             }
 
             int verify_status = status_code;
             status = pjsip_auth_srv_verify(&auth_srv, rdata.get(), &verify_status);
-            if (status == PJ_SUCCESS) {
+            if (status == PJ_SUCCESS) 
+            {
                 status_code = static_cast<int>(SipStatusCode::SIP_OK);
             }
 
             // 创建响应消息
-            pjsip_tx_data* tdata = nullptr;
             status = pjsip_endpt_create_response(
                 GlobalCtl::getInstance().getSipCore().getEndPoint().get(),
                 rdata.get(),
@@ -276,12 +305,17 @@ pj_status_t SipRegister::handleAuthRegister(SipTypes::RxDataPtr rdata)
                 nullptr,
                 &tdata);
 
-            if (!tdata) {
+            // 释放临时池
+            pjsip_endpt_release_pool(GlobalCtl::getInstance().getSipCore().getEndPoint().get(), tmp_pool);
+
+           if (!tdata) 
+           {
                 throw std::runtime_error("Failed to create response");
             }
 
             // 添加日期头部
-            if (!addDateHeader(tdata->msg, tdata->pool)) {
+            if (!addDateHeader(tdata->msg, tdata->pool)) 
+            {
                 throw std::runtime_error("Failed to add Date header");
             }
 
@@ -299,13 +333,15 @@ pj_status_t SipRegister::handleAuthRegister(SipTypes::RxDataPtr rdata)
                 nullptr,
                 nullptr);
 
-            if (tdata) {
-                pjsip_tx_data_dec_ref(tdata);
-            }
-
         } catch (const std::exception& e) {
             LOG(ERROR) << "Exception in auth verification: " << e.what();
             status = PJ_EINVAL;
+        }
+
+        // 确保资源释放，无论成功与否
+        if (tdata) 
+        {
+            pjsip_tx_data_dec_ref(tdata);
         }
 
         return status;
@@ -313,6 +349,7 @@ pj_status_t SipRegister::handleAuthRegister(SipTypes::RxDataPtr rdata)
 }
 
 // 普通注册处理
+// 修改handleRegister方法，确保锁的正确使用
 pj_status_t SipRegister::handleRegister(SipTypes::RxDataPtr rdata)
 {
     LOG(INFO) << "handleRegister called";
@@ -343,17 +380,14 @@ pj_status_t SipRegister::handleRegister(SipTypes::RxDataPtr rdata)
     int expires_value { 0 };
 
     // 域检查
-    // checkIsValid改为只判断是否有这个id（注册状态后续要改）
-    // 只要有该域即可（不必已注册）
-    // 域检查使用omain_manager_替代GlobalCtl::getInstance()
     bool domain_exists { false };
     {
-        // 使用读锁保护域管理器的并发访问
+        // 使用读锁保护域管理器的并发访问，确保锁在合适范围内被释放
         std::shared_lock<std::shared_mutex> lock(domain_manager_.getMutex());  // 读锁
         // 检查请求的域是否存在
         auto domain = domain_manager_.findDomain(from_id);
         domain_exists = (domain != nullptr);
-    }
+    } // 读锁在此释放
 
     // 如果域不存在，返回404错误
     if (!domain_exists)
@@ -372,10 +406,6 @@ pj_status_t SipRegister::handleRegister(SipTypes::RxDataPtr rdata)
 
     // 创建响应消息
     // 获取SIP终端点
-    // SipCore 相关操作仍然使用 GlobalCtl::getInstance()
-    // SipCore 是全局资源，不能在多线程中创建和销毁
-    // getSipCore() 本来就是 GlobalCtl 的特有功能，不属于域管理的职责
-    // 没必要为了统一接口而在 IDomainManager 中添加与域管理无关的方法
     auto endpt = GlobalCtl::getInstance().getSipCore().getEndPoint();
     if (!endpt) 
     {
@@ -403,6 +433,7 @@ pj_status_t SipRegister::handleRegister(SipTypes::RxDataPtr rdata)
     if(!addDateHeader(txdata->msg, rdata->tp_info.pool))
     {
         LOG(ERROR) << "Failed to add Date header";
+        pjsip_tx_data_dec_ref(txdata);  // 确保释放资源
         return PJ_EINVAL;
     }
     // 获取响应地址
@@ -411,6 +442,7 @@ pj_status_t SipRegister::handleRegister(SipTypes::RxDataPtr rdata)
     if(status != PJ_SUCCESS)
     {
         LOG(ERROR) << "Failed to get response address: " << status;
+        pjsip_tx_data_dec_ref(txdata);  // 确保释放资源
         return status;
     }
     // 发送响应消息
@@ -424,6 +456,7 @@ pj_status_t SipRegister::handleRegister(SipTypes::RxDataPtr rdata)
     if(status != PJ_SUCCESS)
     {
         LOG(ERROR) << "Failed to send response: " << status;
+        pjsip_tx_data_dec_ref(txdata);  // 确保释放资源
         return status;
     }
 
@@ -457,7 +490,7 @@ pj_status_t SipRegister::handleRegister(SipTypes::RxDataPtr rdata)
             domain_manager_.updateRegistration(from_id, 0, false, 0);
             LOG(INFO) << "Unregistration successful for domain: " << from_id;
         }
-    }
+    } // 写锁在此释放
     return status;
 }
 

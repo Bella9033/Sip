@@ -182,19 +182,30 @@ pj_status_t PjSipUtils::registerThread()
 // ===== 线程注册器构造函数 =====
 PjSipUtils::ThreadRegistrar::ThreadRegistrar()
 {
+    // 防止并发初始化问题
     static std::mutex init_mutex;
     std::lock_guard<std::mutex> lock(init_mutex);
+    static thread_local bool registered = false;
     
     pj_status_t status = registerThread();
+    // 检查线程是否已注册
     if (!pj_thread_is_registered()) 
     {
+        // 确保每个线程只注册一次
         pj_thread_desc desc;
-        pj_thread_t* thread;
-        if (pj_thread_register(nullptr, desc, &thread) != PJ_SUCCESS) 
+        pj_thread_t* thread { nullptr };
+        pj_status_t status = pj_thread_register(nullptr, desc, &thread);
+        if (status != PJ_SUCCESS) 
         {
-            LOG(ERROR) << "Failed to register thread with PJSIP";
+            LOG(ERROR) << "Failed to register thread with PJSIP, status: " << status;
             throw std::runtime_error("Thread registration failed");
         }
+        registered = true;
+        LOG(INFO) << "Thread registered successfully with PJSIP";
+    }
+    else
+    {
+        LOG(INFO) << "Thread already registered with PJSIP";
     }
 }
 

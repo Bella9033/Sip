@@ -79,6 +79,7 @@ bool GlobalCtl::checkIsValid(const std::string& id) const
 
 DomainInfo* GlobalCtl::findDomain(std::string_view id)
 {
+    // 注意：调用此方法前必须已获取适当的锁
     auto it = std::find_if(
         domain_info_list_.begin(),
         domain_info_list_.end(),
@@ -140,8 +141,8 @@ void GlobalCtl::setLastRegTime(std::string_view id, time_t last_reg_time_value)
 // 批量原子更新接口
 void GlobalCtl::updateRegistration(std::string_view id, int expires_new, bool registered_new, time_t last_reg_time_new)
 {
-    // 使用写锁保护注册信息映射表
-    std::unique_lock<std::shared_mutex> lock(register_mutex_);
+    // 使用写锁保护域信息映射表
+    std::unique_lock<std::shared_mutex> lock(domain_mutex_); 
     
     auto domain = findDomain(id);
     if (domain)
@@ -161,9 +162,11 @@ void GlobalCtl::updateRegistration(std::string_view id, int expires_new, bool re
     update_counter_++;
 }
 
+
 bool GlobalCtl::getAuthInfo(std::string_view id)
 {
-    std::unique_lock<std::shared_mutex> lock(domain_mutex_);
+    // 使用读锁
+    std::shared_lock<std::shared_mutex> lock(domain_mutex_);
     auto domain = findDomain(id);
     if (domain) 
     {
@@ -171,7 +174,7 @@ bool GlobalCtl::getAuthInfo(std::string_view id)
         return domain->auth;
     }  
     LOG(ERROR) << "Domain not found when getting auth info: " << id;
-    return false;  // 当域不存在时返回 false
+    return false;
 }
 
 std::string GlobalCtl::getRandomNum(int length)

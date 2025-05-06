@@ -50,6 +50,7 @@ constexpr size_t SIP_ALLOC_POOL_1M = 1024 * 1024 * 1;
 enum class SipStatusCode
 {
     SIP_OK = 200,
+    SIP_UNAUTHORIZED = 401, // 未授权
     SIP_FORBIDEN = 403, // 禁止访问
     SIP_NOT_FOUND = 404, // 找不到
 };

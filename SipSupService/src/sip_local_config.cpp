@@ -28,20 +28,26 @@ bool SipLocalConfig::readConf()
     auto sip_ip_opt = conf_reader_.getString("sip_server", "sip_ip", &err);
     auto sip_port_opt = conf_reader_.getInt("sip_server", "sip_port", &err);
     auto sip_realm_opt = conf_reader_.getString("sip_server", "sip_realm", &err);
+    auto sip_usr_opt = conf_reader_.getString("sip_server", "sip_usr", &err);
+    auto sip_pwd_opt = conf_reader_.getString("sip_server", "sip_pwd", &err);
     
     auto subnode_num_opt = conf_reader_.getInt("sip_server", "subnode_num", &err);
-    if(!sip_id_opt || !sip_ip_opt || !sip_port_opt || !subnode_num_opt) 
+    if(!sip_id_opt || !sip_ip_opt || !sip_port_opt || !subnode_num_opt || 
+       !sip_realm_opt || !sip_usr_opt || !sip_pwd_opt) 
     {
         LOG(ERROR) << "Failed to load sip_server config: " << err;
         return false;
     }
-    
+
     // 将 SIP 服务配置存储到成员变量中
     sip_id_ = *sip_id_opt;
     sip_ip_ = *sip_ip_opt; 
     sip_port_ = *sip_port_opt;
     sip_realm_ = *sip_realm_opt;
+    sip_usr_ = *sip_usr_opt;
+    sip_pwd_ = *sip_pwd_opt;
     subnode_num_ = *subnode_num_opt;
+    
     LOG(INFO) << fmt::format(
         "SIP Server Config: ID={}, IP={}, Port={}, Realm={}, SubnodeNum={}",
         sip_id_, sip_ip_, sip_port_, sip_realm_, subnode_num_

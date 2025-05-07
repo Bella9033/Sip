@@ -155,27 +155,30 @@ pj_status_t SipCore::initSip(int sip_port)
 
 pj_bool_t SipCore::onRxRequestRaw(pjsip_rx_data* rdata)
 {
-    if (!rdata)
+    if (!rdata) 
     {
         LOG(ERROR) << "Received null rdata in onRxRequestRaw";
         return PJ_FALSE;
     }
 
-    // 立即克隆数据
+    // 立即克隆数据并转换为智能指针
     auto rdata_ptr = PjSipUtils::cloneRxData(rdata);
     if (!rdata_ptr) 
     {
         LOG(ERROR) << "Failed to clone rx_data in onRxRequestRaw";
         return PJ_FALSE;
     }
+    
+    // 调用智能指针版本的处理函数
     return onRxRequest(rdata_ptr);
 }
 
 pj_bool_t SipCore::onRxRequest(SipTypes::RxDataPtr rdata)
 {
+    LOG(INFO) << "onRxRequest called with rdata=" << (void*)rdata.get();
     // 添加线程注册，因为这是处理接收SIP请求的回调
     PjSipUtils::ThreadRegistrar thread_registrar;
-    LOG(INFO) << "onRxRequest called";
+
     if (!rdata || !rdata->msg_info.msg) 
     {
         LOG(ERROR) << "rdata or msg_info is null";

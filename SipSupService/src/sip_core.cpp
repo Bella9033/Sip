@@ -148,6 +148,7 @@ pj_status_t SipCore::initSip(int sip_port)
 
 
 
+// 保持原有的裸指针版本，用于 PJSIP 回调
 pj_bool_t SipCore::onRxRequestRaw(pjsip_rx_data* rdata)
 {
     if (!rdata) 
@@ -156,19 +157,22 @@ pj_bool_t SipCore::onRxRequestRaw(pjsip_rx_data* rdata)
         return PJ_FALSE;
     }
 
-    // 立即克隆数据
+    // 立即克隆数据并转换为智能指针
     auto rdata_ptr = PjSipUtils::cloneRxData(rdata);
     if (!rdata_ptr) 
     {
         LOG(ERROR) << "Failed to clone rx_data in onRxRequestRaw";
         return PJ_FALSE;
     }
+    
+    // 调用智能指针版本的处理函数
     return onRxRequest(rdata_ptr);
 }
 
+// 修改为使用智能指针的实现
 pj_bool_t SipCore::onRxRequest(SipTypes::RxDataPtr rdata)
 {
-    LOG(INFO) << "onRxRequest called";
+    LOG(INFO) << "onRxRequest called with rdata=" << (void*)rdata.get();
     
     // 添加线程注册，因为这是处理接收SIP请求的回调
     PjSipUtils::ThreadRegistrar thread_registrar;
@@ -181,12 +185,11 @@ pj_bool_t SipCore::onRxRequest(SipTypes::RxDataPtr rdata)
 
     LOG(INFO) << "onRxRequest: " << pjsip_rx_data_get_info(rdata.get());
 
-
     // 创建参数对象
     auto params = std::make_shared<ThRxParams>();
     
-    // 这里不需要再次克隆，直接使用传入的智能指针
-    params->rxdata = rdata.get();  // 使用 get() 获取原始指针
+    // 这里直接使用智能指针，无需额外的克隆操作
+    params->rxdata = rdata;
     
     // 由工厂/单例获取注册器
     if (rdata->msg_info.msg->line.req.method.id == PJSIP_REGISTER_METHOD) 
@@ -216,6 +219,7 @@ pj_bool_t SipCore::onRxRequest(SipTypes::RxDataPtr rdata)
         
         // 增加错误处理
         try {
+            // 传递智能指针，而非裸指针
             params_copy->taskbase->runRxTask(params_copy->rxdata);
             LOG(INFO) << "runRxTask success in PJSIP_REGISTER_METHOD";
             return 0;
@@ -226,7 +230,6 @@ pj_bool_t SipCore::onRxRequest(SipTypes::RxDataPtr rdata)
     };
 
     try {
-        
         // 增加错误处理
         auto fut = EVThread::createThread(
             std::move(worker), 
@@ -247,7 +250,6 @@ pj_bool_t SipCore::onRxRequest(SipTypes::RxDataPtr rdata)
         LOG(ERROR) << "Exception in thread creation: " << e.what();
         return PJ_FALSE;
     }
-    return PJ_SUCCESS;
 }
 
 

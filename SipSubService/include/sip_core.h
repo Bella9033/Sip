@@ -30,11 +30,11 @@ public:
     
     void pollingEventLoop(SipTypes::EndpointPtr endpt);
 
-    // 原始指针版本的回调（供PJSIP使用）
-    static pj_bool_t onRxRequestRaw(pjsip_rx_data* rdata);
-    
-    // 智能指针版本的回调
+    // 修改函数声明，使用智能指针参数
     static pj_bool_t onRxRequest(SipTypes::RxDataPtr rdata);
+    
+    // 保持原有的裸指针版本，作为外部回调接口
+    static pj_bool_t onRxRequestRaw(pjsip_rx_data* rdata);
 
     static std::atomic<bool> stop_pool_;
     static pjsip_module recv_mod;

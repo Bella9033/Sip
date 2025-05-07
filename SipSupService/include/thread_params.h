@@ -1,4 +1,5 @@
 // thread_params.h
+
 #pragma once
 
 #include "common.h"
@@ -8,7 +9,8 @@
 // 线程处理参数
 struct ThRxParams 
 {
-    pjsip_rx_data* rxdata;
+    // 使用智能指针
+    SipTypes::RxDataPtr rxdata;
     std::shared_ptr<ISipTaskBase> taskbase;
 
     ThRxParams() 

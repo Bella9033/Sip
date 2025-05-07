@@ -39,7 +39,7 @@ public:
     static pj_bool_t onRxRequestRaw(pjsip_rx_data* rdata);
     
     // 智能指针版本的回调
-    static pj_bool_t onRxRequest(SipTypes::RxDataPtr rdata);
+    static pj_bool_t onRxRequest(pjsip_rx_data* rdata);
 
     static std::atomic<bool> stop_pool_;
     static pjsip_module recv_mod;

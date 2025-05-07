@@ -602,5 +602,5 @@ CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/main.cpp
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../include/sip_register.h \
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../include/task_timer.h \
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../include/ev_thread.h \
- /mnt/hgfs/share/SupServer/SipSupService/cmake/../include/sip_task_base.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../include/interfaces/isip_task_base.h \
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../include/interfaces/isip_register.h

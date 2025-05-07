@@ -534,7 +534,7 @@ CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/sip_regi
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../include/ev_thread.h \
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../include/ev_thread_pool.h \
  /usr/include/c++/11/queue /usr/include/c++/11/bits/stl_queue.h \
- /mnt/hgfs/share/SupServer/SipSupService/cmake/../include/sip_task_base.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../include/interfaces/isip_task_base.h \
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../include/pjsip_utils.h \
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../include/sip_types.h \
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../include/interfaces/isip_register.h \

@@ -542,7 +542,7 @@ CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/sip_core
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../include/node_info.h \
  /usr/include/c++/11/shared_mutex \
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../include/thread_params.h \
- /mnt/hgfs/share/SupServer/SipSupService/cmake/../include/sip_task_base.h \
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../include/interfaces/isip_task_base.h \
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../include/sip_register.h \
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../include/task_timer.h \
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../include/interfaces/isip_register.h \

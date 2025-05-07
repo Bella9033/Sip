@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = -DFMT_LOCALE -DFMT_SHARED -DGLOG_NO_ABBREVIATED_SEVERITIES -DGLOG_USE_GLOG_EXPORT -DGOOGLE_GLOG_DLL_DECL
 
-CXX_INCLUDES = -I/mnt/hgfs/share/SupServer/SipSupService/cmake/../include -I/mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include -I/mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip -I/mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/jthread -I/mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/jrtplib3 -I/mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/libevent -I/mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/tinyxml2
+CXX_INCLUDES = -I/mnt/hgfs/share/SupServer/SipSupService/cmake/../include -I/mnt/hgfs/share/SupServer/SipSupService/cmake/../include/interfaces -I/mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include -I/mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/pjsip -I/mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/jthread -I/mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/jrtplib3 -I/mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/libevent -I/mnt/hgfs/share/SupServer/SipSupService/cmake/../../../Third/include/tinyxml2
 
 CXX_FLAGS =   -g -Wall -Wno-unused-function -Wno-unused-variable -std=gnu++23
 

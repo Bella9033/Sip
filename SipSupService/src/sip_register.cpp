@@ -139,7 +139,7 @@ void SipRegister::checkRegisterProc()
     }
 }
 
-pj_status_t SipRegister::runRxTask(SipTypes::RxDataPtr rdata) 
+pj_status_t SipRegister::runRxTask(pjsip_rx_data* rdata) 
 {
     LOG(INFO) << "runRxTask called";
     // 处理SIP消息数据(RxDataPtr)，调用链中涉及SIP栈操作，需要添加线程注册
@@ -148,7 +148,7 @@ pj_status_t SipRegister::runRxTask(SipTypes::RxDataPtr rdata)
 }
 
 // 处理注册请求消息
-pj_status_t SipRegister::registerReqMsg(SipTypes::RxDataPtr rdata)
+pj_status_t SipRegister::registerReqMsg(pjsip_rx_data* rdata)
 {
     LOG(INFO) << "registerReqMsg called";
 
@@ -166,7 +166,7 @@ pj_status_t SipRegister::registerReqMsg(SipTypes::RxDataPtr rdata)
 }
 
 // 处理需要认证的SIP注册请求
-pj_status_t SipRegister::handleAuthRegister(SipTypes::RxDataPtr rdata)
+pj_status_t SipRegister::handleAuthRegister(pjsip_rx_data* rdata)
 {
     LOG(INFO) << "handleAuthRegister called";
     
@@ -188,12 +188,13 @@ pj_status_t SipRegister::handleAuthRegister(SipTypes::RxDataPtr rdata)
         pjsip_tx_data* tdata = nullptr;
         status = pjsip_endpt_create_response(
             GlobalCtl::getInstance().getSipCore().getEndPoint().get(),
-            rdata.get(),
+            rdata,
             status_code,
             nullptr,
             &tdata);
 
-        if (!tdata || status != PJ_SUCCESS) {
+        if (!tdata || status != PJ_SUCCESS) 
+        {
             LOG(ERROR) << "Failed to create response";
             return status;
         }
@@ -233,7 +234,7 @@ pj_status_t SipRegister::handleAuthRegister(SipTypes::RxDataPtr rdata)
 
             // 获取响应地址并发送
             pjsip_response_addr res_addr;
-            status = pjsip_get_response_addr(tdata->pool, rdata.get(), &res_addr);
+            status = pjsip_get_response_addr(tdata->pool, rdata, &res_addr);
             if (status != PJ_SUCCESS) 
             {
                 // 确保释放资源
@@ -291,7 +292,7 @@ pj_status_t SipRegister::handleAuthRegister(SipTypes::RxDataPtr rdata)
             }
 
             int verify_status = status_code;
-            status = pjsip_auth_srv_verify(&auth_srv, rdata.get(), &verify_status);
+            status = pjsip_auth_srv_verify(&auth_srv, rdata, &verify_status);
             if (status == PJ_SUCCESS) 
             {
                 status_code = static_cast<int>(SipStatusCode::SIP_OK);
@@ -300,7 +301,7 @@ pj_status_t SipRegister::handleAuthRegister(SipTypes::RxDataPtr rdata)
             // 创建响应消息
             status = pjsip_endpt_create_response(
                 GlobalCtl::getInstance().getSipCore().getEndPoint().get(),
-                rdata.get(),
+                rdata,
                 status_code,
                 nullptr,
                 &tdata);
@@ -321,7 +322,7 @@ pj_status_t SipRegister::handleAuthRegister(SipTypes::RxDataPtr rdata)
 
             // 获取响应地址并发送
             pjsip_response_addr res_addr;
-            status = pjsip_get_response_addr(tdata->pool, rdata.get(), &res_addr);
+            status = pjsip_get_response_addr(tdata->pool, rdata, &res_addr);
             if (status != PJ_SUCCESS) {
                 throw std::runtime_error("Failed to get response address");
             }
@@ -349,8 +350,7 @@ pj_status_t SipRegister::handleAuthRegister(SipTypes::RxDataPtr rdata)
 }
 
 // 普通注册处理
-// 修改handleRegister方法，确保锁的正确使用
-pj_status_t SipRegister::handleRegister(SipTypes::RxDataPtr rdata)
+pj_status_t SipRegister::handleRegister(pjsip_rx_data* rdata)
 {
     LOG(INFO) << "handleRegister called";
     // 生成32位随机数（用于安全目的）
@@ -418,7 +418,7 @@ pj_status_t SipRegister::handleRegister(SipTypes::RxDataPtr rdata)
     pjsip_tx_data* txdata { nullptr };
     auto status = pjsip_endpt_create_response(
         endpt.get(),
-        rdata.get(),
+        rdata,
         status_code, 
         nullptr, 
         &txdata
@@ -438,7 +438,7 @@ pj_status_t SipRegister::handleRegister(SipTypes::RxDataPtr rdata)
     }
     // 获取响应地址
     pjsip_response_addr res_addr;
-    status = pjsip_get_response_addr(txdata->pool, rdata.get(), &res_addr);
+    status = pjsip_get_response_addr(txdata->pool, rdata, &res_addr);
     if(status != PJ_SUCCESS)
     {
         LOG(ERROR) << "Failed to get response address: " << status;

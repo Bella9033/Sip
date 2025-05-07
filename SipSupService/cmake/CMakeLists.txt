@@ -42,6 +42,7 @@ AUX_SOURCE_DIRECTORY(../src SRC)
 # 包含目录
 INCLUDE_DIRECTORIES(
     ../include
+   ../include/interfaces
     ../../../Third/include
     ../../../Third/include/pjsip
     ../../../Third/include/jthread

@@ -2,13 +2,17 @@
 #pragma once
 
 #include "common.h"
-#include "sip_task_base.h"
+#include "interfaces/isip_task_base.h"
 #include <memory>
 
 // 线程处理参数
-struct ThRxParams {
-    SipTypes::RxDataPtr rxdata;
-    std::shared_ptr<SipTaskBase> taskbase;
+struct ThRxParams 
+{
+    pjsip_rx_data* rxdata;
+    std::shared_ptr<ISipTaskBase> taskbase;
 
-    ThRxParams() : rxdata(nullptr), taskbase(nullptr) {}
+    ThRxParams() 
+        : rxdata(nullptr)
+        , taskbase(nullptr) 
+    { }
 };

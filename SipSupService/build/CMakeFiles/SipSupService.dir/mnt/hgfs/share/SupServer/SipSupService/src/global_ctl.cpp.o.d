@@ -548,4 +548,4 @@ CMakeFiles/SipSupService.dir/mnt/hgfs/share/SupServer/SipSupService/src/global_c
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../include/sip_core.h \
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../include/ev_thread.h \
  /mnt/hgfs/share/SupServer/SipSupService/cmake/../include/thread_params.h \
- /mnt/hgfs/share/SupServer/SipSupService/cmake/../include/sip_task_base.h
+ /mnt/hgfs/share/SupServer/SipSupService/cmake/../include/interfaces/isip_task_base.h

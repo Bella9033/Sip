@@ -186,7 +186,7 @@ pj_bool_t SipCore::onRxRequest(SipTypes::RxDataPtr rdata)
     auto params = std::make_shared<ThRxParams>();
     
     // 这里不需要再次克隆，直接使用传入的智能指针
-    params->rxdata = rdata;
+    params->rxdata = rdata.get();  // 使用 get() 获取原始指针
     
     // 由工厂/单例获取注册器
     if (rdata->msg_info.msg->line.req.method.id == PJSIP_REGISTER_METHOD) 

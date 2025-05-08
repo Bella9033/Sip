@@ -28,6 +28,8 @@ namespace PjSipUtils {
     SipTypes::RxDataPtr cloneRxData(pjsip_rx_data* raw_data);
     SipTypes::EndpointPtr createEndpoint(SipTypes::CachingPoolPtr caching_pool);
 
+    std::string getPjStatusString(pj_status_t status);
+    
     // ===== 核心初始化函数 =====
     // 智能指针版本
     pj_status_t initCore(SipTypes::CachingPoolPtr& caching_pool,

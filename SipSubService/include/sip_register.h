@@ -12,6 +12,9 @@
 #include <mutex>
 #include <atomic>
 
+
+
+
 class SipRegister : public ISipRegister,
                     public std::enable_shared_from_this<SipRegister>
 {
@@ -25,6 +28,7 @@ public:
     ~SipRegister() override;
 
     void startRegService() override;
+    bool extractAuthInfo(pjsip_rx_data* rdata, const std::string& domain_id);
 
 private:
     explicit SipRegister(IDomainManager& domain_manager);
